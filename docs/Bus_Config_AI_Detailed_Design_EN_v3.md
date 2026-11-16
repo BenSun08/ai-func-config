@@ -13,6 +13,8 @@ Read Sections 1–5 for the business rules and architecture, Sections 6–15 for
 
 The table of contents uses Obsidian heading links. Keep heading text unchanged when editing links. References at the end use ordinary web links.
 
+**Execution companion:** [[Bus_Config_AI_Implementation_Plan_EN_v1|Detailed implementation plan]] expands the T01–T16 work packages into 48 subtasks with Codex prompts, skills, environment setup, verification, and deployment instructions. Keep both files in the same vault; this design remains the source of business rules.
+
 ## Contents
 
 1. [[#1. Confirmed requirements and design decisions|Confirmed requirements and design decisions]]
@@ -1075,7 +1077,7 @@ render_workbook(decision: DecisionRevision, report: ValidationReport, destinatio
 
 **Tech Stack:** Python, uv, openpyxl, python-docx with explicit OOXML handling where required, Pydantic, PostgreSQL, FastAPI, pytest, a replaceable Qwen endpoint, and LangGraph for durable review workflows when introduced.
 
-**Spec:** Sections 1–20 and 22–23 of this document. Copy this file into the repository as `docs/design/architecture-v3.md` before implementation; keep the design beside the task plan.
+**Spec:** Sections 1–20 and 22–23 of this document. Copy this file into the repository as `docs/Bus_Config_AI_Detailed_Design_EN_v3.md` and its companion as `docs/Bus_Config_AI_Implementation_Plan_EN_v1.md` before implementation. Preserve these basenames so the Obsidian cross-document links continue to work.
 
 ### Global constraints
 
@@ -1106,6 +1108,8 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T01 — Contracts and single-choice invariants
 
+**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T01. Contracts and single-choice invariants|T01 detailed steps, prompts, and verification]].
+
 **Files:** Create `pyproject.toml`, `src/busconfig/domain/contracts.py`, `src/busconfig/domain/invariants.py`, and `tests/unit/test_selection_contracts.py`.
 
 **Consumes:** Sections 2, 5, 8, and 20. **Produces:** All shared contracts; `validate_selection_rows(rows: list[SelectionInput]) -> SelectionMap`, which rejects duplicates before map construction.
@@ -1117,6 +1121,8 @@ Start each task with its named behavior test, observe the intended failure, impl
 - [ ] Commit the contracts and tests together. Gate: there is no list-valued authoritative selected configuration field.
 
 ### T02 — Synthetic anchors and isolated reference outcomes
+
+**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T02. Synthetic anchors and independent reference outcomes|T02 detailed steps, prompts, and verification]].
 
 **Files:** Create `synthetic/worlds/core.yaml`, `synthetic/renderers/fixtures.py`, `evals/types.py`, `evals/gold/anchors.json`, `tests/acceptance/test_anchor_integrity.py`.
 
@@ -1130,6 +1136,8 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T03 — Spreadsheet ingestion with provenance
 
+**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T03. Spreadsheet ingestion with provenance|T03 detailed steps, prompts, and verification]].
+
 **Files:** Create `src/busconfig/ingest/xlsx_parser.py`, `tests/integration/test_xlsx_parser.py`, and XLSX fixtures under `tests/fixtures/xlsx/`.
 
 **Consumes:** `SourceDocument`, `LayoutProfile`, T02 fixtures. **Produces:** `parse_xlsx(...) -> ParseResult` as specified in Section 20.
@@ -1141,6 +1149,8 @@ Start each task with its named behavior test, observe the intended failure, impl
 - [ ] Commit the parser and fixtures. Gate: parsing preserves scope and location, and never fills arbitrary blanks.
 
 ### T04 — DOCX library structure and effective content
+
+**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T04. DOCX library structure and effective content|T04 detailed steps, prompts, and verification]].
 
 **Files:** Create `src/busconfig/ingest/docx_parser.py`, `tests/integration/test_docx_parser.py`, and DOCX fixtures under `tests/fixtures/docx/`.
 
@@ -1154,6 +1164,8 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T05 — Knowledge compiler and authoring templates
 
+**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T05. Knowledge compiler and authoring templates|T05 detailed steps, prompts, and verification]].
+
 **Files:** Create `src/busconfig/knowledge/compiler.py`, `src/busconfig/knowledge/rules.py`, `tests/unit/test_knowledge_compiler.py`, and `docs/data-contracts.md`.
 
 **Consumes:** T03/T04 parsed knowledge and T01 contracts. **Produces:** `compile_knowledge(...) -> KnowledgeCompilation`, `evaluate_rules(...) -> RuleEvaluation`, and the Section 7 workbook templates.
@@ -1165,6 +1177,8 @@ Start each task with its named behavior test, observe the intended failure, impl
 - [ ] Commit. Gate: a compiled release has stable owners, explicit versions, and approved executable rules.
 
 ### T06 — Independent order interpretation and linking
+
+**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T06. Independent order interpretation and linking|T06 detailed steps, prompts, and verification]].
 
 **Files:** Create `src/busconfig/orders/interpreter.py`, `src/busconfig/orders/linker.py`, `src/busconfig/orders/templates.py`, `tests/unit/test_order_interpretation.py`; align synthetic renderers with the declared template registry without embedding reference answers.
 
@@ -1178,6 +1192,8 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T07 — Evidence and candidate retrieval
 
+**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T07. Evidence retrieval and candidate enumeration|T07 detailed steps, prompts, and verification]].
+
 **Files:** Create `src/busconfig/retrieval/evidence.py`, `src/busconfig/retrieval/candidates.py`, `tests/unit/test_retrieval.py`.
 
 **Consumes:** `LinkedOrder`, knowledge snapshot and function assessments. **Produces:** `build_order_evidence(...) -> OrderEvidenceContext`, `retrieve_candidates(...) -> CandidateSet`, and `build_comparison_packet(...) -> EvidencePacket`.
@@ -1189,6 +1205,8 @@ Start each task with its named behavior test, observe the intended failure, impl
 - [ ] Commit. Gate: candidate IDs and rejected/unknown reasons are inspectable without a model.
 
 ### T08 — Attribute and behavior validation
+
+**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T08. Attribute and behavior validation|T08 detailed steps, prompts, and verification]].
 
 **Files:** Create `src/busconfig/validation/candidate.py`, `src/busconfig/validation/behavior.py`, `src/busconfig/validation/composition.py`, `tests/unit/test_candidate_validation.py`.
 
@@ -1202,6 +1220,8 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T09 — Single-choice planning and independent order validation
 
+**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T09. Single-choice planning and independent order validation|T09 detailed steps, prompts, and verification]].
+
 **Files:** Create `src/busconfig/selection/planner.py`, `src/busconfig/validation/order.py`, `tests/unit/test_selection_planner.py`, `tests/acceptance/test_deterministic_order.py`; extend `src/busconfig/retrieval/evidence.py` with dependency-frontier preparation using the T08 validators.
 
 **Consumes:** Linked order, complete `AssessmentPreparation` including guards/allocations/completeness/issues, knowledge rules/composition templates and search budget. **Produces:** `prepare_assessments(...) -> AssessmentPreparation`, `plan_selection(...) -> SelectionPlan`, `validate_order(...) -> ValidationReport`.
@@ -1213,6 +1233,8 @@ Start each task with its named behavior test, observe the intended failure, impl
 - [ ] Commit. Gate: M1 produces a correct draft or correct unresolved report from native files without model calls.
 
 ### T10 — Model adapter and semantic comparison
+
+**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T10. Model adapter and bounded semantic assistance|T10 detailed steps, prompts, and verification]].
 
 **Files:** Create `src/busconfig/models/client.py`, `src/busconfig/models/compare.py`, `src/busconfig/models/extract.py`, `tests/unit/test_model_contract.py`, `evals/runners/compare_models.py`.
 
@@ -1226,6 +1248,8 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T11 — PostgreSQL schema and atomic decision revisions
 
+**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T11. PostgreSQL schema and atomic decision revisions|T11 detailed steps, prompts, and verification]].
+
 **Files:** Create `src/busconfig/persistence/repository.py`, `migrations/001_core.sql`, `tests/integration/test_revision_repository.py`.
 
 **Consumes:** Shared domain contracts and Section 14 constraints. **Produces:** `Repository` operations for snapshots, revisions, selected maps, jobs, review events, reports and approval.
@@ -1237,6 +1261,8 @@ Start each task with its named behavior test, observe the intended failure, impl
 - [ ] Commit. Gate: database tests independently enforce cardinality; in-memory tests are insufficient evidence for this milestone.
 
 ### T12 — Review, invalidation, and approval
+
+**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T12. Human review, invalidation, and approval|T12 detailed steps, prompts, and verification]].
 
 **Files:** Create `src/busconfig/review/service.py`, `tests/integration/test_review_service.py`.
 
@@ -1250,6 +1276,8 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T13 — Durable workflow, API, and review UI
 
+**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T13. Durable workflow, API, and review UI|T13 detailed steps, prompts, and verification]].
+
 **Files:** Create `src/busconfig/workflow/runner.py`, `src/busconfig/api/app.py`, `src/busconfig/ui/`, `tests/integration/test_workflow_api.py`.
 
 **Consumes:** Repository, review service and all processing stage contracts. **Produces:** Section 16 routes, durable job stages, and single-choice review screens.
@@ -1261,6 +1289,8 @@ Start each task with its named behavior test, observe the intended failure, impl
 - [ ] Commit. Gate: a restarted worker resumes without duplicate business effects and no UI path creates two selected alternatives.
 
 ### T14 — Workbook generation and export checks
+
+**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T14. Workbook generation and export integrity|T14 detailed steps, prompts, and verification]].
 
 **Files:** Create `src/busconfig/export/workbook.py`, `tests/integration/test_workbook_export.py`.
 
@@ -1274,6 +1304,8 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T15 — Full evaluation and retrieval ablations
 
+**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T15. Full evaluation and retrieval experiments|T15 detailed steps, prompts, and verification]].
+
 **Files:** Create `evals/runners/run_suite.py`, `evals/runners/ablate_retrieval.py`, `tests/acceptance/test_release_gates.py`, and experiment report templates.
 
 **Consumes:** Frozen cases E01–E42, independent gold outcomes, full application adapters. **Produces:** case-level results, aggregate metrics with denominators, and reproducible experiment manifests.
@@ -1285,6 +1317,8 @@ Start each task with its named behavior test, observe the intended failure, impl
 - [ ] Commit the evaluator, manifests and reproducible reports. Gate: demonstrate useful completion and correct abstention together, not only fewer errors.
 
 ### T16 — Deployment, restore, and learning handoff
+
+**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T16. Deployment, restore, and learning handoff|T16 detailed steps, prompts, and verification]].
 
 **Files:** Create `deploy/compose.yaml`, `docs/runbook.md`, `docs/environment.md`, `docs/demo.md`, and `tests/acceptance/test_restore.py`.
 
