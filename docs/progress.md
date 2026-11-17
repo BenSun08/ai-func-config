@@ -3,6 +3,101 @@
 Design: Bus_Config_AI_Detailed_Design_EN_v3.md
 Plan: Bus_Config_AI_Implementation_Plan_EN_v1.md
 Current milestone: M0
+Current subtask: T01.2
+Status: verified
+Verified date: 2026-11-17 (Asia/Shanghai)
+
+## Last verified unit — T01.2
+
+- Local commit: the commit containing this entry, titled
+  `feat: enforce T01.2 selection and value contracts`.
+  Resolve it with `git log -1 --format=%H -- docs/progress.md`.
+- Branch: `codex/t01-2-selection-contracts`, based on `b75febb`.
+- Initial inspection: clean `main`; T01.1 had been merged as PR #1 since the
+  preceding session. No domain package or selection test file existed. No
+  unrelated changes needed preservation or prerequisite repair.
+- Files changed: `src/busconfig/domain/{__init__,contracts,invariants}.py`,
+  `tests/unit/test_selection_contracts.py`, `README.md`, `docs/decisions.md`,
+  `docs/progress.md`. Python version, package/dependency configuration, doctor,
+  supplied design and implementation plan remain unchanged.
+- Result: one scalar configuration revision per function in a validated selection
+  map; duplicate rows fail before map construction; instance scopes add no slots;
+  explicit value states preserve false, zero and missing/blank distinctions.
+
+## T01.2 verification evidence
+
+All `uv` commands below used `UV_CACHE_DIR=/tmp/busconfig-uv-cache` in the sandbox.
+All inputs were synthetic. Tests required no database, model or external service.
+
+| Command/check | Actual result |
+| --- | --- |
+| `git status --short --untracked-files=all`; `git log -2 --oneline`; `git branch --show-current` | Clean main at `b75febb`; T01.1 implementation commit `3143aaa` followed by merge. |
+| `uv run pytest -q` before changes | 24 passed; existing settings/doctor baseline. |
+| `uv run pytest tests/unit/test_selection_contracts.py -q` after writing tests | Collection error: domain package absent. Recorded as a setup dependency, not proof of duplicate behavior. |
+| `uv run pytest tests/unit/test_selection_contracts.py -q --tb=short` with contract shell and explicit unimplemented validator | RED: 9 failed, 15 passed. Duplicate-row, instance-scope, empty-draft and boundary tests reached `NotImplementedError` instead of their expected results. |
+| `uv run pytest tests/unit/test_selection_contracts.py -q` after row validation | GREEN: 24 passed, including identical rows, distinct configs, distinct revisions, separate instances, scalar IDs and explicit clear requests. |
+| `uv run pytest tests/unit/test_selection_contracts.py -k 'false_zero_missing or known_requires' -q --tb=short` | RED: 2 failed, 42 deselected; value-state type not yet defined. |
+| `uv run pytest tests/unit/test_selection_contracts.py -q --tb=short` with value types but no state consistency validator | RED: 13 failed, 31 passed; invalid state/value pairs did not raise. |
+| `uv run ruff check --fix src/busconfig/domain tests/unit/test_selection_contracts.py` | Fixed one import-order finding; reported one long test line, subsequently resolved by formatter. |
+| `uv run ruff format src/busconfig/domain tests/unit/test_selection_contracts.py`; `uv run ruff check .` | Two files formatted; lint passed. |
+| `uv run pytest tests/unit/test_selection_contracts.py tests/unit/test_settings.py -q` | GREEN: 68 passed (44 domain cases, 24 existing settings cases). |
+| `uv run pytest tests/unit -q` | GREEN: 68 passed. |
+| `uv run pytest -q` | GREEN: 68 passed. |
+| Isolated mutation check via `uv run python -` and a temporary copy of `busconfig/domain`; removed only the pre-map duplicate guard; ran `pytest ... -k duplicate_function_rows_are_rejected -q --tb=short` in that copy | All 3 duplicate cases failed with `DID NOT RAISE SelectionInvariantError`, proving dictionary overwriting cannot silently satisfy the tests. Repository implementation was not modified by this check; temporary copy removed. |
+| `uv run ruff format --check src/busconfig/domain tests/unit/test_selection_contracts.py`; `uv run ruff check .` | Four files already formatted; all lint checks passed. |
+| `git diff --cached --check`; `git diff --cached --stat`; scoped staged source/test diff | Passed whitespace checks; inspected all seven staged files and confirmed only T01.2 scope. |
+
+Additional assertions cover non-null persisted selections, explicit null clear
+requests, omitted request-field rejection, array/comma-string/type rejection,
+unmapped instances, rejecting pre-collapsed dictionaries, revalidating untrusted
+constructed rows, independent decision revision scopes, contradictory value states,
+finite numbers, structured bindings, raw source text, source block IDs, and
+current/historical/planned scope through JSON round trips.
+
+## T01.2 review and rulings
+
+- Used the available executing-plans, test-driven-development and
+  verification-before-completion skills. Executed locally, without delegation.
+- Final review: scoped self-review of contracts, validator, tests and docs. Checked
+  list-before-map validation, duplicate-before-construction ordering, absence of
+  instance slots, explicit null semantics, no truthiness coercion, and runtime
+  independence from planner/model/evaluation code. No outstanding findings.
+- Ruling: define only the source assertion fields needed for T01.2 value semantics,
+  using design §8.1 and its four states — do not create a replacement matching
+  schema or prematurely build decision/report objects. Cost: source versions,
+  locators, collision detection and immutable payload serialization remain T01.3.
+- Ruling: represent observed blank/absent text through retained `raw_text`, while
+  an unresolved fact remains `MISSING` — no fifth value state is invented. Cost:
+  T03 must preserve that raw evidence and implement the standalone-slash rule;
+  these contracts do not infer missingness by inspecting arbitrary text.
+- Ruling: work on a local feature branch with this file as the ledger, retaining
+  the existing Python baseline — the user requested one scoped subtask and local
+  commit, with no delegation. Cost: review is by the author, not an independent
+  reviewer; no interpreter compatibility claim beyond the tested environment.
+- Blockers: none. No prerequisite repair, deployment, push, merge or messaging.
+
+## Next action — T01.3
+
+Freeze identity and canonical serialization. Begin with
+`test_revision_hash_is_order_independent`, `test_source_id_collision_is_rejected`
+and `test_report_does_not_mutate_payload_hash`. Complete stable source identity,
+locators/version scope, issues and typed result contracts; keep validation reports
+outside the immutable decision payload; deliver `docs/contracts.md` examples and
+schema version. No services required; use synthetic inputs only.
+
+Limits: T01.2 validates input representation and selection cardinality for one
+revision. It does not prove configuration ownership/existence in pinned knowledge,
+candidate suitability, source identity integrity, approval eligibility, deep
+decision immutability or persistence. The typed map is an ordinary Python mapping;
+later consumers still need independent whole-order validation. Integration tests
+do not exist yet and were not claimed as run. M0 remains incomplete until its
+remaining tasks/gates pass.
+
+# Historical record — T01.1
+
+Design: Bus_Config_AI_Detailed_Design_EN_v3.md
+Plan: Bus_Config_AI_Implementation_Plan_EN_v1.md
+Current milestone: M0
 Current subtask: T01.1
 Status: verified
 Verified date: 2026-11-17 (Asia/Shanghai)
