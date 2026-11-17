@@ -11,36 +11,36 @@ The central correction is mandatory: **within one order configuration, each func
 
 Read Sections 1–5 for the business rules and architecture, Sections 6–15 for engineering contracts, and Sections 16–21 for delivery, evaluation, deployment, and implementation work packages. Examples use invented identifiers and do not reproduce company configurations.
 
-The table of contents uses Obsidian heading links. Keep heading text unchanged when editing links. References at the end use ordinary web links.
+The table of contents uses standard Markdown links with GitHub heading anchors. If a heading changes, update its incoming links. References at the end use ordinary web links.
 
-**Execution companion:** [[Bus_Config_AI_Implementation_Plan_EN_v1|Detailed implementation plan]] expands the T01–T16 work packages into 48 subtasks with Codex prompts, skills, environment setup, verification, and deployment instructions. Keep both files in the same vault; this design remains the source of business rules.
+**Execution companion:** [Detailed implementation plan](Bus_Config_AI_Implementation_Plan_EN_v1.md) expands the T01–T16 work packages into 48 subtasks with Codex prompts, skills, environment setup, verification, and deployment instructions. Keep both files together in the repository `docs/` directory; this design remains the source of business rules.
 
 ## Contents
 
-1. [[#1. Confirmed requirements and design decisions|Confirmed requirements and design decisions]]
-2. [[#2. First principles and the selection invariant|First principles and the selection invariant]]
-3. [[#3. System boundaries and success conditions|System boundaries and success conditions]]
-4. [[#4. Architecture and component responsibilities|Architecture and component responsibilities]]
-5. [[#5. End-to-end processing and state transitions|End-to-end processing and state transitions]]
-6. [[#6. Source documents and ingestion contracts|Source documents and ingestion contracts]]
-7. [[#7. Knowledge preparation and authoring formats|Knowledge preparation and authoring formats]]
-8. [[#8. Domain model and evidence representation|Domain model and evidence representation]]
-9. [[#9. Cross-document linking and requirement construction|Cross-document linking and requirement construction]]
-10. [[#10. Retrieval and candidate comparison|Retrieval and candidate comparison]]
-11. [[#11. Rules and engineering validation|Rules and engineering validation]]
-12. [[#12. Single-choice selection and whole-order validation|Single-choice selection and whole-order validation]]
-13. [[#13. LLM contracts and bounded reasoning|LLM contracts and bounded reasoning]]
-14. [[#14. Persistence and transactional integrity|Persistence and transactional integrity]]
-15. [[#15. Human review and change propagation|Human review and change propagation]]
-16. [[#16. API and user interface contracts|API and user interface contracts]]
-17. [[#17. Output workbook and explanation design|Output workbook and explanation design]]
-18. [[#18. Synthetic data and independent evaluation|Synthetic data and independent evaluation]]
-19. [[#19. Deployment and operational behavior|Deployment and operational behavior]]
-20. [[#20. Repository layout and module interfaces|Repository layout and module interfaces]]
-21. [[#21. Implementation plan and acceptance gates|Implementation plan and acceptance gates]]
-22. [[#22. Worked synthetic decision examples|Worked synthetic decision examples]]
-23. [[#23. Superseded assumptions and remaining domain mappings|Superseded assumptions and remaining domain mappings]]
-24. [[#24. References and glossary|References and glossary]]
+1. [Confirmed requirements and design decisions](#1-confirmed-requirements-and-design-decisions)
+2. [First principles and the selection invariant](#2-first-principles-and-the-selection-invariant)
+3. [System boundaries and success conditions](#3-system-boundaries-and-success-conditions)
+4. [Architecture and component responsibilities](#4-architecture-and-component-responsibilities)
+5. [End-to-end processing and state transitions](#5-end-to-end-processing-and-state-transitions)
+6. [Source documents and ingestion contracts](#6-source-documents-and-ingestion-contracts)
+7. [Knowledge preparation and authoring formats](#7-knowledge-preparation-and-authoring-formats)
+8. [Domain model and evidence representation](#8-domain-model-and-evidence-representation)
+9. [Cross-document linking and requirement construction](#9-cross-document-linking-and-requirement-construction)
+10. [Retrieval and candidate comparison](#10-retrieval-and-candidate-comparison)
+11. [Rules and engineering validation](#11-rules-and-engineering-validation)
+12. [Single-choice selection and whole-order validation](#12-single-choice-selection-and-whole-order-validation)
+13. [LLM contracts and bounded reasoning](#13-llm-contracts-and-bounded-reasoning)
+14. [Persistence and transactional integrity](#14-persistence-and-transactional-integrity)
+15. [Human review and change propagation](#15-human-review-and-change-propagation)
+16. [API and user interface contracts](#16-api-and-user-interface-contracts)
+17. [Output workbook and explanation design](#17-output-workbook-and-explanation-design)
+18. [Synthetic data and independent evaluation](#18-synthetic-data-and-independent-evaluation)
+19. [Deployment and operational behavior](#19-deployment-and-operational-behavior)
+20. [Repository layout and module interfaces](#20-repository-layout-and-module-interfaces)
+21. [Implementation plan and acceptance gates](#21-implementation-plan-and-acceptance-gates)
+22. [Worked synthetic decision examples](#22-worked-synthetic-decision-examples)
+23. [Superseded assumptions and remaining domain mappings](#23-superseded-assumptions-and-remaining-domain-mappings)
+24. [References and glossary](#24-references-and-glossary)
 
 ## 1. Confirmed requirements and design decisions
 
@@ -1108,7 +1108,7 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T01 — Contracts and single-choice invariants
 
-**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T01. Contracts and single-choice invariants|T01 detailed steps, prompts, and verification]].
+**Execution steps:** [T01 detailed steps, prompts, and verification](Bus_Config_AI_Implementation_Plan_EN_v1.md#t01-contracts-and-single-choice-invariants).
 
 **Files:** Create `pyproject.toml`, `src/busconfig/domain/contracts.py`, `src/busconfig/domain/invariants.py`, and `tests/unit/test_selection_contracts.py`.
 
@@ -1122,7 +1122,7 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T02 — Synthetic anchors and isolated reference outcomes
 
-**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T02. Synthetic anchors and independent reference outcomes|T02 detailed steps, prompts, and verification]].
+**Execution steps:** [T02 detailed steps, prompts, and verification](Bus_Config_AI_Implementation_Plan_EN_v1.md#t02-synthetic-anchors-and-independent-reference-outcomes).
 
 **Files:** Create `synthetic/worlds/core.yaml`, `synthetic/renderers/fixtures.py`, `evals/types.py`, `evals/gold/anchors.json`, `tests/acceptance/test_anchor_integrity.py`.
 
@@ -1136,7 +1136,7 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T03 — Spreadsheet ingestion with provenance
 
-**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T03. Spreadsheet ingestion with provenance|T03 detailed steps, prompts, and verification]].
+**Execution steps:** [T03 detailed steps, prompts, and verification](Bus_Config_AI_Implementation_Plan_EN_v1.md#t03-spreadsheet-ingestion-with-provenance).
 
 **Files:** Create `src/busconfig/ingest/xlsx_parser.py`, `tests/integration/test_xlsx_parser.py`, and XLSX fixtures under `tests/fixtures/xlsx/`.
 
@@ -1150,7 +1150,7 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T04 — DOCX library structure and effective content
 
-**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T04. DOCX library structure and effective content|T04 detailed steps, prompts, and verification]].
+**Execution steps:** [T04 detailed steps, prompts, and verification](Bus_Config_AI_Implementation_Plan_EN_v1.md#t04-docx-library-structure-and-effective-content).
 
 **Files:** Create `src/busconfig/ingest/docx_parser.py`, `tests/integration/test_docx_parser.py`, and DOCX fixtures under `tests/fixtures/docx/`.
 
@@ -1164,7 +1164,7 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T05 — Knowledge compiler and authoring templates
 
-**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T05. Knowledge compiler and authoring templates|T05 detailed steps, prompts, and verification]].
+**Execution steps:** [T05 detailed steps, prompts, and verification](Bus_Config_AI_Implementation_Plan_EN_v1.md#t05-knowledge-compiler-and-authoring-templates).
 
 **Files:** Create `src/busconfig/knowledge/compiler.py`, `src/busconfig/knowledge/rules.py`, `tests/unit/test_knowledge_compiler.py`, and `docs/data-contracts.md`.
 
@@ -1178,7 +1178,7 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T06 — Independent order interpretation and linking
 
-**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T06. Independent order interpretation and linking|T06 detailed steps, prompts, and verification]].
+**Execution steps:** [T06 detailed steps, prompts, and verification](Bus_Config_AI_Implementation_Plan_EN_v1.md#t06-independent-order-interpretation-and-linking).
 
 **Files:** Create `src/busconfig/orders/interpreter.py`, `src/busconfig/orders/linker.py`, `src/busconfig/orders/templates.py`, `tests/unit/test_order_interpretation.py`; align synthetic renderers with the declared template registry without embedding reference answers.
 
@@ -1192,7 +1192,7 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T07 — Evidence and candidate retrieval
 
-**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T07. Evidence retrieval and candidate enumeration|T07 detailed steps, prompts, and verification]].
+**Execution steps:** [T07 detailed steps, prompts, and verification](Bus_Config_AI_Implementation_Plan_EN_v1.md#t07-evidence-retrieval-and-candidate-enumeration).
 
 **Files:** Create `src/busconfig/retrieval/evidence.py`, `src/busconfig/retrieval/candidates.py`, `tests/unit/test_retrieval.py`.
 
@@ -1206,7 +1206,7 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T08 — Attribute and behavior validation
 
-**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T08. Attribute and behavior validation|T08 detailed steps, prompts, and verification]].
+**Execution steps:** [T08 detailed steps, prompts, and verification](Bus_Config_AI_Implementation_Plan_EN_v1.md#t08-attribute-and-behavior-validation).
 
 **Files:** Create `src/busconfig/validation/candidate.py`, `src/busconfig/validation/behavior.py`, `src/busconfig/validation/composition.py`, `tests/unit/test_candidate_validation.py`.
 
@@ -1220,7 +1220,7 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T09 — Single-choice planning and independent order validation
 
-**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T09. Single-choice planning and independent order validation|T09 detailed steps, prompts, and verification]].
+**Execution steps:** [T09 detailed steps, prompts, and verification](Bus_Config_AI_Implementation_Plan_EN_v1.md#t09-single-choice-planning-and-independent-order-validation).
 
 **Files:** Create `src/busconfig/selection/planner.py`, `src/busconfig/validation/order.py`, `tests/unit/test_selection_planner.py`, `tests/acceptance/test_deterministic_order.py`; extend `src/busconfig/retrieval/evidence.py` with dependency-frontier preparation using the T08 validators.
 
@@ -1234,7 +1234,7 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T10 — Model adapter and semantic comparison
 
-**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T10. Model adapter and bounded semantic assistance|T10 detailed steps, prompts, and verification]].
+**Execution steps:** [T10 detailed steps, prompts, and verification](Bus_Config_AI_Implementation_Plan_EN_v1.md#t10-model-adapter-and-bounded-semantic-assistance).
 
 **Files:** Create `src/busconfig/models/client.py`, `src/busconfig/models/compare.py`, `src/busconfig/models/extract.py`, `tests/unit/test_model_contract.py`, `evals/runners/compare_models.py`.
 
@@ -1248,7 +1248,7 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T11 — PostgreSQL schema and atomic decision revisions
 
-**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T11. PostgreSQL schema and atomic decision revisions|T11 detailed steps, prompts, and verification]].
+**Execution steps:** [T11 detailed steps, prompts, and verification](Bus_Config_AI_Implementation_Plan_EN_v1.md#t11-postgresql-schema-and-atomic-decision-revisions).
 
 **Files:** Create `src/busconfig/persistence/repository.py`, `migrations/001_core.sql`, `tests/integration/test_revision_repository.py`.
 
@@ -1262,7 +1262,7 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T12 — Review, invalidation, and approval
 
-**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T12. Human review, invalidation, and approval|T12 detailed steps, prompts, and verification]].
+**Execution steps:** [T12 detailed steps, prompts, and verification](Bus_Config_AI_Implementation_Plan_EN_v1.md#t12-human-review-invalidation-and-approval).
 
 **Files:** Create `src/busconfig/review/service.py`, `tests/integration/test_review_service.py`.
 
@@ -1276,7 +1276,7 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T13 — Durable workflow, API, and review UI
 
-**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T13. Durable workflow, API, and review UI|T13 detailed steps, prompts, and verification]].
+**Execution steps:** [T13 detailed steps, prompts, and verification](Bus_Config_AI_Implementation_Plan_EN_v1.md#t13-durable-workflow-api-and-review-ui).
 
 **Files:** Create `src/busconfig/workflow/runner.py`, `src/busconfig/api/app.py`, `src/busconfig/ui/`, `tests/integration/test_workflow_api.py`.
 
@@ -1290,7 +1290,7 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T14 — Workbook generation and export checks
 
-**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T14. Workbook generation and export integrity|T14 detailed steps, prompts, and verification]].
+**Execution steps:** [T14 detailed steps, prompts, and verification](Bus_Config_AI_Implementation_Plan_EN_v1.md#t14-workbook-generation-and-export-integrity).
 
 **Files:** Create `src/busconfig/export/workbook.py`, `tests/integration/test_workbook_export.py`.
 
@@ -1304,7 +1304,7 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T15 — Full evaluation and retrieval ablations
 
-**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T15. Full evaluation and retrieval experiments|T15 detailed steps, prompts, and verification]].
+**Execution steps:** [T15 detailed steps, prompts, and verification](Bus_Config_AI_Implementation_Plan_EN_v1.md#t15-full-evaluation-and-retrieval-experiments).
 
 **Files:** Create `evals/runners/run_suite.py`, `evals/runners/ablate_retrieval.py`, `tests/acceptance/test_release_gates.py`, and experiment report templates.
 
@@ -1318,7 +1318,7 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 ### T16 — Deployment, restore, and learning handoff
 
-**Execution steps:** [[Bus_Config_AI_Implementation_Plan_EN_v1#T16. Deployment, restore, and learning handoff|T16 detailed steps, prompts, and verification]].
+**Execution steps:** [T16 detailed steps, prompts, and verification](Bus_Config_AI_Implementation_Plan_EN_v1.md#t16-deployment-restore-and-learning-handoff).
 
 **Files:** Create `deploy/compose.yaml`, `docs/runbook.md`, `docs/environment.md`, `docs/demo.md`, and `tests/acceptance/test_restore.py`.
 

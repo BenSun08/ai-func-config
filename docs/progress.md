@@ -7,11 +7,31 @@ Current subtask: T01.3
 Status: verified
 Verified date: 2026-11-17 (Asia/Shanghai)
 
+## Documentation follow-up — GitHub navigation (2026-11-18)
+
+- Branch: `codex/t01-3-identity-contracts`; initial working tree was clean at
+  `97722fc`. Kept the same branch.
+- Changed files: `docs/Bus_Config_AI_Detailed_Design_EN_v3.md`,
+  `docs/Bus_Config_AI_Implementation_Plan_EN_v1.md`, `docs/progress.md`.
+- Converted 99 Obsidian wiki links (41 design, 58 plan) to standard Markdown
+  relative file/heading links. Updated navigation guidance for GitHub.
+  Link labels, heading text, business rules and implementation scope are preserved.
+- `python3 /tmp/check_busconfig_doc_links.py` (temporary documentation smoke
+  checker): before edits, exit 1 with 41 + 58 unsupported wiki links; after edits,
+  exit 0 with 105 local Markdown links checked across all 8 tracked Markdown files
+  and no missing files, heading anchors, or remaining wiki links. The checker
+  excludes fenced code when indexing headings and handles duplicate anchors.
+- `git diff --check`: passed. Reviewed the complete design/plan diff; changes
+  are limited to link syntax and navigation guidance. No runtime tests were
+  needed for this documentation-only change.
+- Blockers: none. Verification is local against GitHub's documented section and
+  relative-link rules; no live GitHub click-through or push was performed.
+- Next implementation subtask remains **T02.1**; T01.3 stays verified.
+
 ## Last verified unit — T01.3
 
-- Local commit: the commit containing this entry, titled
+- Local commit: `97722fc`, titled
   `feat: freeze T01.3 identity and serialization contracts`.
-  Resolve it with `git log -1 --format=%H -- docs/progress.md`.
 - Branch: `codex/t01-3-identity-contracts`, based on `9ef891d`.
 - Initial inspection: clean working tree on `codex/t01-2-selection-contracts`.
   The existing 68 tests passed. No unrelated changes were present.

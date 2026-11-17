@@ -8,7 +8,7 @@
 
 **Tech stack:** Python 3.12 as the initial application baseline; uv; Pydantic; openpyxl; python-docx with explicit OOXML inspection; pytest; PostgreSQL; FastAPI; server-rendered review pages; an HTTP model adapter; optional LangGraph orchestration. The inference environment is separate.
 
-**Spec:** [[Bus_Config_AI_Detailed_Design_EN_v3|Bus Config AI Detailed Design v3]]. The design defines business behavior; this plan defines implementation order and verification. Preserve both filenames in the same Obsidian vault and repository `docs/` directory.
+**Spec:** [Bus Config AI Detailed Design v3](Bus_Config_AI_Detailed_Design_EN_v3.md). The design defines business behavior; this plan defines implementation order and verification. Preserve both filenames together in the repository `docs/` directory.
 
 **Version:** 1.0 · **Date:** November 16, 2026 · **Status:** Execution-ready planning document; application code, tests, and deployments described here have not yet been created or run.
 
@@ -29,38 +29,38 @@ Five additional practical failures receive explicit tests: an oversized or malic
 
 ## Contents
 
-1. [[#1. How to use this plan|How to use this plan]]
-2. [[#2. Milestones and dependency order|Milestones and dependency order]]
-3. [[#3. Tools, skills, and plugins|Tools, skills, and plugins]]
-4. [[#4. The Codex execution playbook|The Codex execution playbook]]
-5. [[#5. Environment setup and project command contracts|Environment setup and project command contracts]]
-6. [[#6. Detailed implementation tasks|Detailed implementation tasks]]
-7. [[#7. Model-service setup and prompt contracts|Model-service setup and prompt contracts]]
-8. [[#8. Stage gates and verification commands|Stage gates and verification commands]]
-9. [[#9. Design and scenario traceability|Design and scenario traceability]]
-10. [[#10. Deployment and operational runbook|Deployment and operational runbook]]
-11. [[#11. Progress tracking and the first working sessions|Progress tracking and the first working sessions]]
-12. [[#12. Deferred work and decision triggers|Deferred work and decision triggers]]
-13. [[#13. References and verification notes|References and verification notes]]
+1. [How to use this plan](#1-how-to-use-this-plan)
+2. [Milestones and dependency order](#2-milestones-and-dependency-order)
+3. [Tools, skills, and plugins](#3-tools-skills-and-plugins)
+4. [The Codex execution playbook](#4-the-codex-execution-playbook)
+5. [Environment setup and project command contracts](#5-environment-setup-and-project-command-contracts)
+6. [Detailed implementation tasks](#6-detailed-implementation-tasks)
+7. [Model-service setup and prompt contracts](#7-model-service-setup-and-prompt-contracts)
+8. [Stage gates and verification commands](#8-stage-gates-and-verification-commands)
+9. [Design and scenario traceability](#9-design-and-scenario-traceability)
+10. [Deployment and operational runbook](#10-deployment-and-operational-runbook)
+11. [Progress tracking and the first working sessions](#11-progress-tracking-and-the-first-working-sessions)
+12. [Deferred work and decision triggers](#12-deferred-work-and-decision-triggers)
+13. [References and verification notes](#13-references-and-verification-notes)
 
 **Task shortcuts:**
 
-- [[#T01. Contracts and single-choice invariants|T01. Contracts and single-choice invariants]]
-- [[#T02. Synthetic anchors and independent reference outcomes|T02. Synthetic anchors and independent reference outcomes]]
-- [[#T03. Spreadsheet ingestion with provenance|T03. Spreadsheet ingestion with provenance]]
-- [[#T04. DOCX library structure and effective content|T04. DOCX library structure and effective content]]
-- [[#T05. Knowledge compiler and authoring templates|T05. Knowledge compiler and authoring templates]]
-- [[#T06. Independent order interpretation and linking|T06. Independent order interpretation and linking]]
-- [[#T07. Evidence retrieval and candidate enumeration|T07. Evidence retrieval and candidate enumeration]]
-- [[#T08. Attribute and behavior validation|T08. Attribute and behavior validation]]
-- [[#T09. Single-choice planning and independent order validation|T09. Single-choice planning and independent order validation]]
-- [[#T10. Model adapter and bounded semantic assistance|T10. Model adapter and bounded semantic assistance]]
-- [[#T11. PostgreSQL schema and atomic decision revisions|T11. PostgreSQL schema and atomic decision revisions]]
-- [[#T12. Human review, invalidation, and approval|T12. Human review, invalidation, and approval]]
-- [[#T13. Durable workflow, API, and review UI|T13. Durable workflow, API, and review UI]]
-- [[#T14. Workbook generation and export integrity|T14. Workbook generation and export integrity]]
-- [[#T15. Full evaluation and retrieval experiments|T15. Full evaluation and retrieval experiments]]
-- [[#T16. Deployment, restore, and learning handoff|T16. Deployment, restore, and learning handoff]]
+- [T01. Contracts and single-choice invariants](#t01-contracts-and-single-choice-invariants)
+- [T02. Synthetic anchors and independent reference outcomes](#t02-synthetic-anchors-and-independent-reference-outcomes)
+- [T03. Spreadsheet ingestion with provenance](#t03-spreadsheet-ingestion-with-provenance)
+- [T04. DOCX library structure and effective content](#t04-docx-library-structure-and-effective-content)
+- [T05. Knowledge compiler and authoring templates](#t05-knowledge-compiler-and-authoring-templates)
+- [T06. Independent order interpretation and linking](#t06-independent-order-interpretation-and-linking)
+- [T07. Evidence retrieval and candidate enumeration](#t07-evidence-retrieval-and-candidate-enumeration)
+- [T08. Attribute and behavior validation](#t08-attribute-and-behavior-validation)
+- [T09. Single-choice planning and independent order validation](#t09-single-choice-planning-and-independent-order-validation)
+- [T10. Model adapter and bounded semantic assistance](#t10-model-adapter-and-bounded-semantic-assistance)
+- [T11. PostgreSQL schema and atomic decision revisions](#t11-postgresql-schema-and-atomic-decision-revisions)
+- [T12. Human review, invalidation, and approval](#t12-human-review-invalidation-and-approval)
+- [T13. Durable workflow, API, and review UI](#t13-durable-workflow-api-and-review-ui)
+- [T14. Workbook generation and export integrity](#t14-workbook-generation-and-export-integrity)
+- [T15. Full evaluation and retrieval experiments](#t15-full-evaluation-and-retrieval-experiments)
+- [T16. Deployment, restore, and learning handoff](#t16-deployment-restore-and-learning-handoff)
 
 ## 1. How to use this plan
 
@@ -81,7 +81,7 @@ Keep these four records:
 | `docs/progress.md` | Actual state, commands, failures, commits, next subtask | Every completed or interrupted subtask |
 | `docs/decisions.md` | New implementation choices and their reasons | The task making that choice |
 
-In Obsidian, use Reading view to click the links. In an editor, the modifier-click behavior depends on your settings. Cross-document links require both Markdown files in the vault; a downloaded plan alone cannot open a design file that is absent. The links use actual heading text rather than browser-generated heading slugs.
+Use the rendered Markdown view on GitHub to follow the table of contents, task shortcuts, and design references. Links use relative `.md` paths and GitHub heading anchors, so cross-document navigation stays on the branch being viewed. Keep both Markdown files together when downloading them. If a heading changes, update its incoming links; editor click behavior depends on the Markdown preview and settings.
 
 ## 2. Milestones and dependency order
 
@@ -348,7 +348,7 @@ All paths below are relative to the future repository root. “Common” means E
 
 ### T01. Contracts and single-choice invariants
 
-**Depends on:** None. **Design:** [[Bus_Config_AI_Detailed_Design_EN_v3#2. First principles and the selection invariant|§2]], [[Bus_Config_AI_Detailed_Design_EN_v3#8. Domain model and evidence representation|§8]], [[Bus_Config_AI_Detailed_Design_EN_v3#20. Repository layout and module interfaces|§20]]. **Skills/plugins:** Common; OA for Codex setup; no service plugin required.
+**Depends on:** None. **Design:** [§2](Bus_Config_AI_Detailed_Design_EN_v3.md#2-first-principles-and-the-selection-invariant), [§8](Bus_Config_AI_Detailed_Design_EN_v3.md#8-domain-model-and-evidence-representation), [§20](Bus_Config_AI_Detailed_Design_EN_v3.md#20-repository-layout-and-module-interfaces). **Skills/plugins:** Common; OA for Codex setup; no service plugin required.
 
 **Files:** `pyproject.toml`, `uv.lock`, `AGENTS.md`, `.env.example`, `src/busconfig/{__init__,cli,settings}.py`, `src/busconfig/domain/{contracts,invariants}.py`, `tests/unit/test_selection_contracts.py`, `tests/unit/test_settings.py`, `docs/{environment,progress,decisions}.md`.
 
@@ -373,7 +373,7 @@ as far as this subtask needs; do not build a database or model client.
 
 ### T02. Synthetic anchors and independent reference outcomes
 
-**Depends on:** T01. **Design:** [[Bus_Config_AI_Detailed_Design_EN_v3#18. Synthetic data and independent evaluation|§18]], [[Bus_Config_AI_Detailed_Design_EN_v3#22. Worked synthetic decision examples|§22]]. **Skills/plugins:** Common; SS/DOC for fixture inspection; no service plugin.
+**Depends on:** T01. **Design:** [§18](Bus_Config_AI_Detailed_Design_EN_v3.md#18-synthetic-data-and-independent-evaluation), [§22](Bus_Config_AI_Detailed_Design_EN_v3.md#22-worked-synthetic-decision-examples). **Skills/plugins:** Common; SS/DOC for fixture inspection; no service plugin.
 
 **Files:** `synthetic/worlds/core.yaml`, `synthetic/renderers/fixtures.py`, `evals/types.py`, `evals/gold/anchors.json`, `evals/splits.json`, `tests/acceptance/test_anchor_integrity.py`, `docs/synthetic-data.md`.
 
@@ -398,7 +398,7 @@ small readable fixture suite before adding random or large datasets.
 
 ### T03. Spreadsheet ingestion with provenance
 
-**Depends on:** T01–T02. **Design:** [[Bus_Config_AI_Detailed_Design_EN_v3#6. Source documents and ingestion contracts|§6]]. **Skills/plugins:** Common + SS; no service plugin.
+**Depends on:** T01–T02. **Design:** [§6](Bus_Config_AI_Detailed_Design_EN_v3.md#6-source-documents-and-ingestion-contracts). **Skills/plugins:** Common + SS; no service plugin.
 
 **Files:** `src/busconfig/ingest/xlsx_parser.py`, `src/busconfig/ingest/file_guard.py`, `config/layouts/*.yaml`, `tests/integration/test_xlsx_parser.py`, `tests/fixtures/xlsx/`.
 
@@ -423,7 +423,7 @@ links as data; do not execute them or fetch external workbook content.
 
 ### T04. DOCX library structure and effective content
 
-**Depends on:** T01–T03. **Design:** [[Bus_Config_AI_Detailed_Design_EN_v3#6. Source documents and ingestion contracts|§6]], [[Bus_Config_AI_Detailed_Design_EN_v3#7. Knowledge preparation and authoring formats|§7]]. **Skills/plugins:** Common + DOC; no service plugin.
+**Depends on:** T01–T03. **Design:** [§6](Bus_Config_AI_Detailed_Design_EN_v3.md#6-source-documents-and-ingestion-contracts), [§7](Bus_Config_AI_Detailed_Design_EN_v3.md#7-knowledge-preparation-and-authoring-formats). **Skills/plugins:** Common + DOC; no service plugin.
 
 **Files:** `src/busconfig/ingest/docx_parser.py`, `tests/integration/test_docx_parser.py`, `tests/fixtures/docx/`, `docs/docx-profile.md`.
 
@@ -447,7 +447,7 @@ accept deleted text, and do not invent a revision precedence rule.
 
 ### T05. Knowledge compiler and authoring templates
 
-**Depends on:** T03–T04. **Design:** [[Bus_Config_AI_Detailed_Design_EN_v3#7. Knowledge preparation and authoring formats|§7]], [[Bus_Config_AI_Detailed_Design_EN_v3#11. Rules and engineering validation|§11]]. **Skills/plugins:** Common + SS for templates; no service plugin.
+**Depends on:** T03–T04. **Design:** [§7](Bus_Config_AI_Detailed_Design_EN_v3.md#7-knowledge-preparation-and-authoring-formats), [§11](Bus_Config_AI_Detailed_Design_EN_v3.md#11-rules-and-engineering-validation). **Skills/plugins:** Common + SS for templates; no service plugin.
 
 **Files:** `src/busconfig/knowledge/{compiler,rules}.py`, `templates/configuration_attributes.xlsx`, `templates/experience_rules.xlsx`, `templates/composition_templates.yaml`, `tests/unit/test_knowledge_compiler.py`, `tests/unit/test_rules.py`, `docs/knowledge-authoring.md`.
 
@@ -472,7 +472,7 @@ source/review fields. Publish only immutable, validated snapshots.
 
 ### T06. Independent order interpretation and linking
 
-**Depends on:** T03/T05. **Design:** [[Bus_Config_AI_Detailed_Design_EN_v3#8. Domain model and evidence representation|§8]], [[Bus_Config_AI_Detailed_Design_EN_v3#9. Cross-document linking and requirement construction|§9]]. **Skills/plugins:** Common; no service plugin.
+**Depends on:** T03/T05. **Design:** [§8](Bus_Config_AI_Detailed_Design_EN_v3.md#8-domain-model-and-evidence-representation), [§9](Bus_Config_AI_Detailed_Design_EN_v3.md#9-cross-document-linking-and-requirement-construction). **Skills/plugins:** Common; no service plugin.
 
 **Files:** `src/busconfig/orders/{interpreter,linker,templates}.py`, `config/aliases.yaml`, `tests/unit/test_order_interpretation.py`, `tests/unit/test_entity_linking.py`, `docs/source-language-templates.md`.
 
@@ -497,7 +497,7 @@ as first-class unresolved records that later stages cannot discard.
 
 ### T07. Evidence retrieval and candidate enumeration
 
-**Depends on:** T05–T06; final preparation integration in T09. **Design:** [[Bus_Config_AI_Detailed_Design_EN_v3#10. Retrieval and candidate comparison|§10]]. **Skills/plugins:** Common; no RAG-service plugin required.
+**Depends on:** T05–T06; final preparation integration in T09. **Design:** [§10](Bus_Config_AI_Detailed_Design_EN_v3.md#10-retrieval-and-candidate-comparison). **Skills/plugins:** Common; no RAG-service plugin required.
 
 **Files:** `src/busconfig/retrieval/{evidence,candidates}.py`, `tests/unit/test_retrieval.py`, `docs/retrieval-baseline.md`.
 
@@ -522,7 +522,7 @@ the planner rather than turning a limited search into a proven gap.
 
 ### T08. Attribute and behavior validation
 
-**Depends on:** T05–T07. **Design:** [[Bus_Config_AI_Detailed_Design_EN_v3#11. Rules and engineering validation|§11]], [[Bus_Config_AI_Detailed_Design_EN_v3#12. Single-choice selection and whole-order validation|§12]]. **Skills/plugins:** Common; no service plugin.
+**Depends on:** T05–T07. **Design:** [§11](Bus_Config_AI_Detailed_Design_EN_v3.md#11-rules-and-engineering-validation), [§12](Bus_Config_AI_Detailed_Design_EN_v3.md#12-single-choice-selection-and-whole-order-validation). **Skills/plugins:** Common; no service plugin.
 
 **Files:** `src/busconfig/validation/{candidate,behavior,composition}.py`, `tests/unit/test_candidate_validation.py`, `tests/unit/test_behavior.py`, `tests/unit/test_composition.py`.
 
@@ -547,7 +547,7 @@ template and complete obligation allocation across different functions.
 
 ### T09. Single-choice planning and independent order validation
 
-**Depends on:** T01–T08. **Design:** [[Bus_Config_AI_Detailed_Design_EN_v3#9. Cross-document linking and requirement construction|§9]], [[Bus_Config_AI_Detailed_Design_EN_v3#12. Single-choice selection and whole-order validation|§12]]. **Skills/plugins:** Common + CR at the M1 gate; no service plugin.
+**Depends on:** T01–T08. **Design:** [§9](Bus_Config_AI_Detailed_Design_EN_v3.md#9-cross-document-linking-and-requirement-construction), [§12](Bus_Config_AI_Detailed_Design_EN_v3.md#12-single-choice-selection-and-whole-order-validation). **Skills/plugins:** Common + CR at the M1 gate; no service plugin.
 
 **Files:** `src/busconfig/selection/planner.py`, `src/busconfig/validation/order.py`, complete `src/busconfig/retrieval/evidence.py`, extend `src/busconfig/cli.py`, `tests/unit/test_planner.py`, `tests/unit/test_order_validation.py`, `tests/acceptance/test_m1_pipeline.py`.
 
@@ -572,7 +572,7 @@ IDs. Build an independent final validator and a model-free CLI draft.
 
 ### T10. Model adapter and bounded semantic assistance
 
-**Depends on:** M1. **Design:** [[Bus_Config_AI_Detailed_Design_EN_v3#13. LLM contracts and bounded reasoning|§13]], [[Bus_Config_AI_Detailed_Design_EN_v3#18. Synthetic data and independent evaluation|§18]]. **Skills/plugins:** Common; DB for endpoint failures; no paid API/plugin required. Use OA only if intentionally adding an OpenAI provider later.
+**Depends on:** M1. **Design:** [§13](Bus_Config_AI_Detailed_Design_EN_v3.md#13-llm-contracts-and-bounded-reasoning), [§18](Bus_Config_AI_Detailed_Design_EN_v3.md#18-synthetic-data-and-independent-evaluation). **Skills/plugins:** Common; DB for endpoint failures; no paid API/plugin required. Use OA only if intentionally adding an OpenAI provider later.
 
 **Files:** `src/busconfig/models/{client,extract,compare}.py`, `prompts/{order_extract,link_proposal,candidate_compare}.txt`, `tests/unit/test_model_contracts.py`, `tests/integration/test_model_adapter.py`, `evals/runners/compare_models.py`, `docs/model-endpoint.md`.
 
@@ -597,7 +597,7 @@ and show whether actual inference improves the deterministic baseline.
 
 ### T11. PostgreSQL schema and atomic decision revisions
 
-**Depends on:** T09; T10 artifacts may be attached but are not required to test persistence. **Design:** [[Bus_Config_AI_Detailed_Design_EN_v3#14. Persistence and transactional integrity|§14]]. **Skills/plugins:** Common; no database-service plugin required.
+**Depends on:** T09; T10 artifacts may be attached but are not required to test persistence. **Design:** [§14](Bus_Config_AI_Detailed_Design_EN_v3.md#14-persistence-and-transactional-integrity). **Skills/plugins:** Common; no database-service plugin required.
 
 **Files:** `migrations/001_core.sql`, `src/busconfig/persistence/{repository,migrate}.py`, `deploy/compose.dev.yaml`, `tests/integration/test_repository.py`, `tests/integration/test_concurrency.py`, `docs/database.md`.
 
@@ -622,7 +622,7 @@ two connections and explicit barriers rather than timing sleeps.
 
 ### T12. Human review, invalidation, and approval
 
-**Depends on:** T09/T11. **Design:** [[Bus_Config_AI_Detailed_Design_EN_v3#15. Human review and change propagation|§15]]. **Skills/plugins:** Common; no service plugin.
+**Depends on:** T09/T11. **Design:** [§15](Bus_Config_AI_Detailed_Design_EN_v3.md#15-human-review-and-change-propagation). **Skills/plugins:** Common; no service plugin.
 
 **Files:** `src/busconfig/review/service.py`, `tests/integration/test_review_service.py`, `docs/review-transitions.md`.
 
@@ -647,7 +647,7 @@ Retain earlier approvals as historical records only.
 
 ### T13. Durable workflow, API, and review UI
 
-**Depends on:** T10–T12. **Design:** [[Bus_Config_AI_Detailed_Design_EN_v3#5. End-to-end processing and state transitions|§5]], [[Bus_Config_AI_Detailed_Design_EN_v3#16. API and user interface contracts|§16]], [[Bus_Config_AI_Detailed_Design_EN_v3#19. Deployment and operational behavior|§19]]. **Skills/plugins:** Common + BR for UI checks; optional LangGraph runtime library, not a required Codex plugin.
+**Depends on:** T10–T12. **Design:** [§5](Bus_Config_AI_Detailed_Design_EN_v3.md#5-end-to-end-processing-and-state-transitions), [§16](Bus_Config_AI_Detailed_Design_EN_v3.md#16-api-and-user-interface-contracts), [§19](Bus_Config_AI_Detailed_Design_EN_v3.md#19-deployment-and-operational-behavior). **Skills/plugins:** Common + BR for UI checks; optional LangGraph runtime library, not a required Codex plugin.
 
 **Files:** `src/busconfig/workflow/runner.py`, `src/busconfig/api/{app,auth}.py`, `src/busconfig/ui/`, `tests/integration/test_workflow_api.py`, `tests/integration/test_auth.py`, `tests/browser/test_review_flow.py`, `docs/api.md`.
 
@@ -672,7 +672,7 @@ states. Existing results must remain reviewable during model outages.
 
 ### T14. Workbook generation and export integrity
 
-**Depends on:** T11–T13. **Design:** [[Bus_Config_AI_Detailed_Design_EN_v3#17. Output workbook and explanation design|§17]]. **Skills/plugins:** Common + SS; no service plugin.
+**Depends on:** T11–T13. **Design:** [§17](Bus_Config_AI_Detailed_Design_EN_v3.md#17-output-workbook-and-explanation-design). **Skills/plugins:** Common + SS; no service plugin.
 
 **Files:** `src/busconfig/export/workbook.py`, `tests/integration/test_workbook_export.py`, `docs/export-columns.md`, `tests/fixtures/exports/`.
 
@@ -697,7 +697,7 @@ descriptions and make draft versus approved status unmistakable.
 
 ### T15. Full evaluation and retrieval experiments
 
-**Depends on:** T02 and completed application tasks. **Design:** [[Bus_Config_AI_Detailed_Design_EN_v3#18. Synthetic data and independent evaluation|§18]]. **Skills/plugins:** Common + CR; no external eval framework required.
+**Depends on:** T02 and completed application tasks. **Design:** [§18](Bus_Config_AI_Detailed_Design_EN_v3.md#18-synthetic-data-and-independent-evaluation). **Skills/plugins:** Common + CR; no external eval framework required.
 
 **Files:** `evals/runners/{run_suite,ablate_retrieval}.py`, `evals/reports/`, `tests/acceptance/test_release_gates.py`, `docs/evaluation-protocol.md`.
 
@@ -722,7 +722,7 @@ the held-out test split or describe synthetic success as field validation.
 
 ### T16. Deployment, restore, and learning handoff
 
-**Depends on:** M3 and the T15 gate. **Design:** [[Bus_Config_AI_Detailed_Design_EN_v3#19. Deployment and operational behavior|§19]], [[Bus_Config_AI_Detailed_Design_EN_v3#21. Implementation plan and acceptance gates|§21]]. **Skills/plugins:** Common + CR; BR for deployed smoke checks; no hosting plugin required.
+**Depends on:** M3 and the T15 gate. **Design:** [§19](Bus_Config_AI_Detailed_Design_EN_v3.md#19-deployment-and-operational-behavior), [§21](Bus_Config_AI_Detailed_Design_EN_v3.md#21-implementation-plan-and-acceptance-gates). **Skills/plugins:** Common + CR; BR for deployed smoke checks; no hosting plugin required.
 
 **Files:** `deploy/{Dockerfile,compose.yaml,release.env.example}`, `.dockerignore`, `scripts/{backup,restore,smoke}.py`, `docs/{runbook,environment,demo}.md`, `tests/acceptance/test_restore.py`, `tests/acceptance/test_deployment.py`.
 
