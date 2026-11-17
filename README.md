@@ -2,8 +2,9 @@
 
 Synthetic-data application following the [detailed design](docs/Bus_Config_AI_Detailed_Design_EN_v3.md)
 and [implementation plan](docs/Bus_Config_AI_Implementation_Plan_EN_v1.md).
-T01.1 establishes the Python package and local environment diagnostic.
-Domain selection, parsing, persistence and model execution are subsequent tasks.
+T01.1 establishes the Python package and local environment diagnostic. T01.2 adds
+typed selection inputs, duplicate-function rejection and explicit fact value
+states. Parsing, planning, persistence and model execution are subsequent tasks.
 
 ## Local setup
 
@@ -51,7 +52,7 @@ engineering inputs may be used in this independent project.
 ## Verification
 
 ```sh
-uv run pytest tests/unit/test_settings.py -q
+uv run pytest tests/unit/test_selection_contracts.py tests/unit/test_settings.py -q
 uv run pytest tests/unit -q
 uv run pytest -q
 uv run ruff check .
