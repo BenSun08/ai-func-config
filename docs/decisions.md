@@ -1,5 +1,41 @@
 # Implementation decisions
 
+## T01.3 — 2026-11-17
+
+- Schema 1.0 uses strict opaque IDs, native XLSX/DOCX locators, explicit source
+  business/hash/parser versions, typed issues and the §20.2 result containers.
+  Result containers are data contracts, not implementations of the future
+  parsers, planner, independent validator, model adapter or persistence layer.
+- Decision content is a `DecisionPayload` inside a `DecisionRevision` envelope.
+  Its SHA-256 hash covers versioned canonical UTF-8 JSON, sorted object keys and
+  ID-indexed records/references. Semantic sequences remain ordered. Lifecycle,
+  reports, export time and the hash itself are excluded from decision content.
+  A report binds the decision ID/payload hash and has an independent report hash.
+- Use `FrozenMap` and tuples for nested validated values. This is the minimum
+  prerequisite repair to T01.2's shallow frozen models: nested dictionaries/lists
+  could otherwise change after a decision was hashed. JSON representation remains
+  objects/arrays; the existing test caller now expects tuple values in Python.
+  Public copy updates are revalidated, and duplicate JSON object keys are rejected.
+- Source block IDs derive from schema version, document identity/content hash,
+  business revision and native locator. Collisions among documents, blocks and
+  assertions are rejected before lookup construction, including identical repeats.
+  Cross-import detection requires the caller to supply existing records; durable
+  identity registration remains a persistence responsibility.
+- Keep source/model text inert. Config attributes have explicit value states and
+  evidence/review metadata; evidence packets retain full rules and exceptions.
+  Raw model responses, advisory comparisons, unreviewed proposals and validated
+  candidate checks are separate types. Proposal records cannot claim human review.
+- Initial issue severity is conservative and fixed: `METADATA_NOTE` is INFO; all
+  other codes are BLOCKING. Future nonblocking policy additions require deliberate
+  schema/policy changes and tests; individual callers cannot downgrade blockers.
+- Canonical encoding is project-specific, not RFC 8785. It preserves exact strings
+  and finite JSON numeric types; no automatic Unicode, decimal or unit guessing is
+  performed during hashing. Producer-specific normalization and restricted rule/
+  behavior representations are completed in their owning tasks before use.
+- No interpreter/dependency, doctor, database, model client or deployment changes
+  were needed. Work remains on a local branch based on T01.2, with self-review as
+  requested (no delegation).
+
 ## T01.2 — 2026-11-17
 
 - Use the design's `SelectionInput`, `Selection`, `SelectionMap`,
