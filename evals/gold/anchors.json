@@ -1,0 +1,143 @@
+{
+  "cases": [
+    {
+      "case_id": "E01", "scenario_id": "E01", "family_id": "shelf-dial", "split_id": "development",
+      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M31-r1", "knowledge_id": "MICA-K1",
+      "evidence_links": [
+        {"sources": ["L31.B"], "target": "F-LEVEL", "relation": "Current binding, contact and awake-only cycle", "scope": "CURRENT_ORDER"}
+      ],
+      "outcome": {"kind": "select", "acceptable_plans": [{"F-LEVEL": "LEVEL-A.1"}]},
+      "expected_issues": [],
+      "reference_notes": "A takes the momentary contact on DIAL-A and visits level 2 before level 5. B needs a latching contact, C reads DIAL-B and D skips level 2."
+    },
+    {
+      "case_id": "E01.three-table", "scenario_id": "E01", "family_id": "shelf-dial", "split_id": "development",
+      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M32-r1", "knowledge_id": "MICA-K1",
+      "evidence_links": [
+        {"sources": ["P32.A", "L32.A", "S32.A"], "target": "F-LEVEL", "relation": "Three descriptions of the same shelf dial", "scope": "CURRENT_ORDER"},
+        {"sources": ["P32.B", "L32.B", "S32.B"], "target": "LEVEL-A.1", "relation": "Current DIAL-A, awake-only cycle including 2, and momentary operation jointly required", "scope": "CURRENT_ORDER"},
+        {"sources": ["P32.D"], "target": "DIAL-B", "relation": "Prior connection only", "scope": "HISTORICAL_REFERENCE"},
+        {"sources": ["P32.E"], "target": "F-LEVEL", "relation": "Spare designation is a planning note", "scope": "PLANNED_USE"}
+      ],
+      "row_probe": {
+        "policy": "literal-catalog-terms-v1", "cutoff": 1,
+        "ranks": {
+          "P32": ["LEVEL-B.1", "LEVEL-A.1", "LEVEL-C.1", "LEVEL-D.1"],
+          "L32": ["LEVEL-C.1", "LEVEL-A.1", "LEVEL-B.1", "LEVEL-D.1"],
+          "S32": ["LEVEL-D.1", "LEVEL-A.1", "LEVEL-B.1", "LEVEL-C.1"]
+        }
+      },
+      "outcome": {"kind": "select", "acceptable_plans": [{"F-LEVEL": "LEVEL-A.1"}]},
+      "expected_issues": [],
+      "reference_notes": "Only A meets all three current clauses. The pin row's reed collar, the logic row's tide step and the switch row's petal cap each name a different specialist revision. Taking just the first hit per row loses A. The historic DIAL-B cannot rescue C."
+    },
+    {
+      "case_id": "E02", "scenario_id": "E02", "family_id": "route-tag", "split_id": "development",
+      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M33-r1", "knowledge_id": "MICA-K1",
+      "evidence_links": [
+        {"sources": ["T33.A", "T33.B", "T33.D"], "target": "FIT.1", "relation": "Signed explicit false for this component", "scope": "CURRENT_ORDER"}
+      ],
+      "outcome": {"kind": "exclude", "function_id": "F-TAG", "basis_id": "FIT.1"},
+      "expected_issues": [],
+      "reference_notes": "The signed trim schedule explicitly records the tag as absent. FIT.1 makes this a resolved exclusion with zero selected rows."
+    },
+    {
+      "case_id": "E03", "scenario_id": "E03", "family_id": "route-tag", "split_id": "development",
+      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M34-r1", "knowledge_id": "MICA-K1",
+      "evidence_links": [
+        {"sources": ["T34.A", "T34.B", "T34.D"], "target": "FIT.1", "relation": "Signed form with blank fitment cell", "scope": "CURRENT_ORDER"}
+      ],
+      "outcome": {"kind": "abstain", "function_id": "F-TAG", "resolution": "NEEDS_EVIDENCE", "question": "Is the route tag fitted on M34?"},
+      "expected_issues": ["UNKNOWN_REQUIRED_FIELD"],
+      "reference_notes": "The slash is a blank. The signature identifies the schedule but supplies no fitment value. Leave the slot empty until trim confirms whether the function is required."
+    },
+    {
+      "case_id": "E04", "scenario_id": "E04", "family_id": "paired-beacons", "split_id": "development",
+      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M35-r1", "knowledge_id": "MICA-K1",
+      "evidence_links": [
+        {"sources": ["L35.B", "L35.C"], "target": "F-BEACON", "relation": "One function must both accept momentary contacts and clear the beacons", "scope": "CURRENT_ORDER"}
+      ],
+      "outcome": {"kind": "abstain", "function_id": "F-BEACON", "resolution": "CONFLICT"},
+      "expected_issues": ["SAME_FUNCTION_COMPOSITION_FORBIDDEN", "UNCOVERED_REQUIREMENT"],
+      "reference_notes": "GLINT handles the press but ignores CLEAR. SHADE handles CLEAR but expects latching inputs. These are alternatives for the same maintained function. No draft selection covers both clauses and no reviewer has confirmed a library gap."
+    },
+    {
+      "case_id": "E04.positive", "scenario_id": "E04", "family_id": "paired-beacons", "split_id": "development",
+      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M36-r1", "knowledge_id": "MICA-K1",
+      "evidence_links": [
+        {"sources": ["P36.B", "S36.B", "L36.B", "L36.C"], "target": "F-BEACON", "relation": "Fixed harness, contact and mandatory powered reset", "scope": "CURRENT_ORDER"},
+        {"sources": ["S36.C"], "target": "F-BEACON", "relation": "Reviewed lens preference", "scope": "CURRENT_ORDER"}
+      ],
+      "score_probe": {
+        "policy": "signed-typed-v1",
+        "observations": {"binding": "P36.B", "mechanism": "S36.B", "lens": "S36.C", "resets_on_clear": "L36.C"},
+        "scores": {"GLINT.1": 2, "SHADE.1": 0},
+        "failed_conditions": {"GLINT.1": ["resets_on_clear"], "SHADE.1": ["mechanism"]}
+      },
+      "outcome": {"kind": "abstain", "function_id": "F-BEACON", "resolution": "CONFLICT"},
+      "expected_issues": ["SAME_FUNCTION_COMPOSITION_FORBIDDEN", "UNCOVERED_REQUIREMENT"],
+      "reference_notes": "GLINT matches the harness, momentary contact and lilac lens, but fails the mandatory reset. SHADE matches the harness and reset, but needs latching contacts and has an amber lens. The four distinct observations give GLINT the unique positive lead. Neither revision is feasible."
+    },
+    {
+      "case_id": "E05", "scenario_id": "E05", "family_id": "paired-beacons", "split_id": "development",
+      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M37-r1", "knowledge_id": "MICA-K1",
+      "evidence_links": [
+        {"sources": ["S37a.A", "S37a.B", "S37b.A", "S37b.B"], "target": "F-BEACON", "relation": "Different installed mechanisms on the two inputs of one fixed harness", "scope": "CURRENT_ORDER"}
+      ],
+      "outcome": {"kind": "abstain", "function_id": "F-BEACON", "resolution": "CONFLICT"},
+      "expected_issues": ["UNCOVERED_REQUIREMENT"],
+      "reference_notes": "GLINT cannot serve the desk's latching switch and SHADE cannot serve the aisle's momentary switch. The two endpoints identify instances of one maintained function. Creating a separate selection slot for each would hide the conflict."
+    },
+    {
+      "case_id": "E06", "scenario_id": "E06", "family_id": "route-tag", "split_id": "development",
+      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M38-r1", "knowledge_id": "MICA-K1",
+      "evidence_links": [
+        {"sources": ["T38.B", "T38.D"], "target": "F-TAG", "relation": "Signed fitment establishes one required function", "scope": "CURRENT_ORDER"}
+      ],
+      "outcome": {"kind": "reject", "submission_revision_id": "TRIM-D4"},
+      "expected_issues": ["MULTIPLE_CONFIGS_FOR_FUNCTION"],
+      "reference_notes": "The attempted submission contains two rows for F-TAG in TRIM-D4. INK.1 and INK.2 are two revisions of INK. Reject the entire submission before reducing rows to a map or checking socket suitability."
+    },
+    {
+      "case_id": "E07", "scenario_id": "E07", "family_id": "route-tag", "split_id": "development",
+      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M39-r1", "knowledge_id": "MICA-K1",
+      "evidence_links": [
+        {"sources": ["T39.B", "T39.C", "T39.D", "L39.B"], "target": "F-TAG", "relation": "Confirmed chalk socket and technology-neutral behavior", "scope": "CURRENT_ORDER"}
+      ],
+      "outcome": {"kind": "abstain", "function_id": "F-TAG", "resolution": "AMBIGUOUS_CHOICE", "tied_revisions": ["INK.2", "WAX.1"], "question": "Which approved chalk-socket driver does trim want to use?"},
+      "expected_issues": ["AMBIGUOUS_CHOICE"],
+      "reference_notes": "INK.2 and WAX.1 both fit the chalk socket and implement continuous illumination. Neither has a dependency, exclusion or approved preference that resolves the tie. Both are review candidates. The draft selects neither."
+    },
+    {
+      "case_id": "E08", "scenario_id": "E08", "family_id": "stop-call", "split_id": "development",
+      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M40-r1", "knowledge_id": "MICA-K1",
+      "evidence_links": [
+        {"sources": ["P40.B", "L40.B"], "target": "RELAY.1", "relation": "Endpoints and timed obligations fall within the reviewed trace domain", "scope": "CURRENT_ORDER"}
+      ],
+      "outcome": {"kind": "select", "acceptable_plans": [{"F-CALL": "SEND.1", "F-LAMP": "PULSE.1"}], "active_dependency_rules": ["FOLLOW.1"], "derived_function_ids": ["F-LAMP"], "template_revision_id": "RELAY.1"},
+      "expected_issues": [],
+      "reference_notes": "SEND owns the counted edge and publishes the pulse. PULSE owns lamp activation, hold and acknowledgement reset. RELAY.1 connects their fixed event ports. At 28 ms the lamp is lit with one counted edge, and at 72 ms it is clear. Each participant occupies its own function slot."
+    },
+    {
+      "case_id": "E09", "scenario_id": "E09", "family_id": "stop-call", "split_id": "development",
+      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M41-r1", "knowledge_id": "MICA-K1",
+      "evidence_links": [
+        {"sources": ["L41a.B"], "target": "F-CALL", "relation": "Either counting mode is locally admissible", "scope": "CURRENT_ORDER"},
+        {"sources": ["L41b.B"], "target": "F-LAMP", "relation": "Independent root demand requires steady operation", "scope": "CURRENT_ORDER"}
+      ],
+      "outcome": {"kind": "select", "acceptable_plans": [{"F-CALL": "STORE.1", "F-LAMP": "DC.1"}]},
+      "expected_issues": [],
+      "reference_notes": "DC is required for steady illumination. Trying SEND activates FOLLOW.1, which requires PULSE in the occupied lamp slot. Discard that branch. STORE counts locally and leaves DC free to satisfy the independent lamp requirement."
+    },
+    {
+      "case_id": "E10", "scenario_id": "E10", "family_id": "stop-call", "split_id": "development",
+      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M42-r2", "knowledge_id": "MICA-K1",
+      "evidence_links": [
+        {"sources": ["L42.B"], "target": "F-CALL", "relation": "New local-only requirement supersedes the announced parent mode", "scope": "CURRENT_ORDER"}
+      ],
+      "outcome": {"kind": "select", "acceptable_plans": [{"F-CALL": "STORE.1"}], "active_dependency_rules": [], "derived_function_ids": []},
+      "expected_issues": [],
+      "reference_notes": "CALL-D1 needed PULSE solely because SEND activated FOLLOW.1. On the new order revision STORE emits no event, so the guard is false. Rebuilding from the sole counter demand removes both the derived lamp demand and its selection."
+    }
+  ]
+}
