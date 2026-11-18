@@ -3,6 +3,126 @@
 Design: Bus_Config_AI_Detailed_Design_EN_v3.md
 Plan: Bus_Config_AI_Implementation_Plan_EN_v1.md
 Current milestone: M0
+Current subtask: T01.3
+Status: verified
+Verified date: 2026-11-17 (Asia/Shanghai)
+
+## Documentation follow-up — GitHub navigation (2026-11-18)
+
+- Branch: `codex/t01-3-identity-contracts`; initial working tree was clean at
+  `97722fc`. Kept the same branch.
+- Changed files: `docs/Bus_Config_AI_Detailed_Design_EN_v3.md`,
+  `docs/Bus_Config_AI_Implementation_Plan_EN_v1.md`, `docs/progress.md`.
+- Converted 99 Obsidian wiki links (41 design, 58 plan) to standard Markdown
+  relative file/heading links. Updated navigation guidance for GitHub.
+  Link labels, heading text, business rules and implementation scope are preserved.
+- `python3 /tmp/check_busconfig_doc_links.py` (temporary documentation smoke
+  checker): before edits, exit 1 with 41 + 58 unsupported wiki links; after edits,
+  exit 0 with 105 local Markdown links checked across all 8 tracked Markdown files
+  and no missing files, heading anchors, or remaining wiki links. The checker
+  excludes fenced code when indexing headings and handles duplicate anchors.
+- `git diff --check`: passed. Reviewed the complete design/plan diff; changes
+  are limited to link syntax and navigation guidance. No runtime tests were
+  needed for this documentation-only change.
+- Blockers: none. Verification is local against GitHub's documented section and
+  relative-link rules; no live GitHub click-through or push was performed.
+- Next implementation subtask remains **T02.1**; T01.3 stays verified.
+
+## Last verified unit — T01.3
+
+- Local commit: `97722fc`, titled
+  `feat: freeze T01.3 identity and serialization contracts`.
+- Branch: `codex/t01-3-identity-contracts`, based on `9ef891d`.
+- Initial inspection: clean working tree on `codex/t01-2-selection-contracts`.
+  The existing 68 tests passed. No unrelated changes were present.
+- Changed files: `src/busconfig/domain/{contracts,invariants,immutable,serialization}.py`,
+  `tests/unit/{test_identity_contracts,test_selection_contracts}.py`,
+  `docs/{contracts,decisions,progress}.md`, `README.md`.
+- Result: schema 1.0 source identities/locators, issues and typed result records;
+  immutable nested decision content; canonical payload/report hashes; source reuse
+  and stale report rejection. Selection cardinality and evidence-only instances
+  remain intact. Supplied design/plan, Python baseline and dependencies unchanged.
+
+## T01.3 verification evidence
+
+All `uv` commands used `UV_CACHE_DIR=/tmp/busconfig-uv-cache`. Tests and examples
+use synthetic values only. No database, model endpoint or network was needed.
+
+| Actual command/check | Observed result |
+| --- | --- |
+| `git status --short --untracked-files=all`; `git branch --show-current`; `git log -3 --oneline` | Clean T01.2 branch at `9ef891d`; created local T01.3 branch from it. |
+| `uv run pytest -q` before edits | 68 passed. |
+| `uv run pytest tests/unit/test_identity_contracts.py -q --tb=short` after writing tests | RED: 10 failed. Nested fact mutation did not raise; remaining new identity/hash types/functions were missing. |
+| Same identity command after initial implementation | 7 failed, 3 passed. Pydantic treated generic dataclass `FrozenMap` as a dataclass instead of using its validator. Replaced that helper with an immutable Mapping class. |
+| Same identity command after mapping repair | 9 passed, 1 failed: the test's new report copied a stale supplied hash. Fixed the fixture to omit the old hash when constructing a new report, retaining rejection of mismatched supplied hashes. |
+| Same identity command with boundary regressions | RED: 5 failed, 11 passed. Duplicate JSON keys were overwritten before hash validation, public copy updates bypassed validation, and ParseResult/report-binding/advisory types were not yet implemented. |
+| Same identity command after boundary implementation | GREEN: all 16 identity cases passed (with the 44 selection cases: 60 passed). |
+| Same identity command with reference/proposal tests | RED: 2 failed, 20 passed; assertion-reference order changed the hash and extraction proposals accepted human-confirmed assertions. Both corrected. |
+| `uv run pytest tests/unit/test_identity_contracts.py -k 'report_check_reference or model_response' -q --tb=short` | RED: 2 failed, 22 deselected; report-check reference order affected hashing and ModelResponse was missing. Both corrected. |
+| `uv run pytest tests/unit/test_identity_contracts.py -k 'reused_as_block or itself_as_parent' -q --tb=short` | RED: 2 failed, 24 deselected; cross-type source-ID aliasing and self-parent revisions were accepted. Both corrected. |
+| `uv run pytest tests/unit/test_identity_contracts.py -k configuration_attributes -q --tb=short` | RED: 1 failed, 26 deselected; configuration attributes accepted a bare boolean without a value state. Introduced explicit AttributeValue and updated the new test caller. |
+| `uv run pytest tests/unit/test_identity_contracts.py -q` after attribute tightening | 26 passed, 1 failed: a custom mapping before-validator lost JSON-mode tuple conversion. Compared direct AttributeValue, dict and FrozenMap validation; isolated JSON/Python schema paths to retain strict validation and JSON-array support. |
+| `uv run pytest tests/unit/test_identity_contracts.py -q` final | GREEN: 27 passed. |
+| `uv run pytest tests/unit/test_selection_contracts.py tests/unit/test_settings.py -q` | GREEN: 68 passed; named T01 parent verification. |
+| `uv run pytest tests/unit -q` | GREEN: 95 passed. |
+| `uv run pytest -q` | GREEN: 95 passed. |
+| `uv run ruff format ...`; `uv run ruff check --fix ...`; `uv run ruff check .` | Formatting/import findings corrected in task files; lint passed. |
+| `uv run ruff format --check src/busconfig/domain tests/unit/test_identity_contracts.py tests/unit/test_selection_contracts.py` | Initial final-check found one wrapping change in immutable.py; formatted that file, then all 7 checked files passed. |
+| `uv run python -` documentation/schema smoke | All 4 JSON examples in docs/contracts.md validated; decision/report hashes and source references matched; JSON Schema generated for all 57 contract models. |
+| `git diff --check` and scoped source/doc review | No whitespace errors; reviewed canonicalization, immutable boundaries, source registries, typed result fields and compatibility changes. |
+| `git diff --cached --check`; `git diff --cached --stat`; scoped staged diff; `git diff --name-only` | All staged checks passed; 10 scoped files, no unstaged edits. |
+
+New tests include the three named T01.3 behaviors:
+`test_revision_hash_is_order_independent`, `test_source_id_collision_is_rejected`,
+and `test_report_does_not_mutate_payload_hash`. They also cover changed facts and
+semantic sequences, false versus zero, snapshot/generation/parent binding, immutable
+nested values and detached serialization, stale/forged hashes, reused source IDs,
+native locators, Unicode, issue severity, parser completeness, advisory/model
+separation and preservation of complete candidate descriptions.
+
+Integration tests still do not exist; no integration test run is claimed. The
+documentation examples demonstrate contracts, not a released order dataset.
+
+## T01.3 review, rulings and limitations
+
+- Used executing-plans, test-driven-development, verification-before-completion
+  and systematic debugging for the observed Pydantic failures. Final review is
+  scoped self-review; delegation was explicitly prohibited.
+- Ruling: repair T01.2 nested mutability as a prerequisite to immutable payloads.
+  Cost: Python callers see tuples/FrozenMap; JSON stays arrays/objects, and public
+  copy updates now validate. Updated the existing affected test caller.
+- Ruling: define §20.2 result containers and supporting records as data-only
+  contracts. Cost: algorithmic eligibility, restricted expression compilation,
+  approval, durable identity registration and persistence are still later tasks;
+  constructing a record does not prove its engineering claims.
+- Ruling: use a versioned project canonical encoding with exact source strings and
+  finite JSON numeric types. Cost: future normalization/encoding changes require
+  explicit producer/schema changes; hashes must not be silently migrated. No
+  implicit unit-equivalence or arbitrary Decimal-object support is claimed.
+- Ruling: source reuse checks compare all supplied records. Cost: callers must
+  include prior registrations to detect cross-import reuse until T11 persistence.
+- Ruling: self-review on a new local branch with this file as the execution ledger.
+  Cost: no independent reviewer; no other-platform/clean-machine qualification.
+- Blockers: none. No database, model client, deployment, push, merge or messaging.
+  No outstanding scoped review findings.
+
+## Next action — T02.1
+
+Define the invented engineering world and hand-write E01–E10 reference outcomes
+before planner implementation. Start `test_anchor_selection_cardinality`, keeping
+E04's complementary same-function alternatives unselected and including E07
+ambiguity and E08 reviewed cross-function composition. Keep reference answers out
+of runtime inputs. No services required; synthetic data only.
+
+T01's three subtasks are now locally verified; M0 is not complete until T02 and
+its independent-anchor gate pass. Hashing/schema tests are not database,
+whole-order validation, model-client or deployment qualification.
+
+# Historical record — T01.2
+
+Design: Bus_Config_AI_Detailed_Design_EN_v3.md
+Plan: Bus_Config_AI_Implementation_Plan_EN_v1.md
+Current milestone: M0
 Current subtask: T01.2
 Status: verified
 Verified date: 2026-11-17 (Asia/Shanghai)

@@ -214,7 +214,7 @@ def test_structured_values_keep_scalar_types_and_source_scope():
         restored = SourceAssertion.model_validate_json(item.model_dump_json())
         assert restored.value["enabled"] is False
         assert type(restored.value["count"]) is int
-        assert restored.value["sequence"] == ["0/1/2/3", None]
+        assert restored.value["sequence"] == ("0/1/2/3", None)
         assert restored.assertion_id == "DEMO-A1"
         assert restored.source_block_ids == ("DEMO-BLOCK1", "DEMO-BLOCK2")
         assert restored.statement_scope == scope
