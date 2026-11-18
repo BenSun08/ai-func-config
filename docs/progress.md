@@ -7,6 +7,19 @@ Current subtask: T01.3
 Status: verified
 Verified date: 2026-11-17 (Asia/Shanghai)
 
+## Matching comparison design and plan — 2026-11-18
+
+Reviewed the T01.3 contracts, selection/source invariants, settings, CLI and available tests on local `main`. Updated design §§5, 10, 13, 18, 20 and the T15 summary, and updated the plan's task contracts and M1/M4 gates. The design specifies three discovery policies and a separate same-hit, fixed-pool replay of the proposed signed-score and deduplication method. Plan §2.1 maps the additions to the existing implementation sequence and lists the schema 1.0 compatibility checks.
+
+| Local verification | Outcome |
+|---|---|
+| `UV_CACHE_DIR=/tmp/busconfig-uv-cache uv run pytest tests/unit/test_identity_contracts.py tests/unit/test_selection_contracts.py -q` | 71 passed |
+| `UV_CACHE_DIR=/tmp/busconfig-uv-cache uv run pytest tests/unit -q` | 95 passed |
+| `UV_CACHE_DIR=/tmp/busconfig-uv-cache uv run ruff check .` | Passed |
+| `python3 /tmp/check_busconfig_doc_links.py` and `git diff --check` | 111 local Markdown links in eight files, zero errors. Diff whitespace check passed. |
+
+Verification covers the existing code and document links. The retrieval engines, score replay, token measurements and paired results are future deliverables. The repository currently contains unit tests only. Next subtask: **T02.1**, including independent E01/E04 variants for a missed single-row hit and a misleading positive score. The first runnable comparison is due at T09.3.
+
 ## Documentation follow-up — GitHub navigation (2026-11-18)
 
 - Branch: `codex/t01-3-identity-contracts`; initial working tree was clean at

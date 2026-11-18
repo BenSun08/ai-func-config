@@ -5,6 +5,8 @@
 **Status:** Detailed design based on the accepted architecture; not an implementation or a production qualification.  
 **Audience:** The engineer building an independent system on a personal computer or server, using synthetic data.
 
+**November 18 amendment.** [Candidate discovery](#105-row-and-function-discovery) defines three ways to find configurations. The [comparison protocol](#185-gates-and-experiments) also evaluates the original row-scoring proposal and specifies how to choose a default from measured results.
+
 ## Reading guide
 
 The central correction is mandatory: **within one order configuration, each function may select at most one configuration.** This document supersedes any earlier suggestion that two alternatives belonging to the same function could be combined to satisfy that function. Several configurations may still be selected across different functions, subject to coverage, dependencies, and compatibility.
@@ -214,6 +216,8 @@ Every order run pins one snapshot. An unfinished knowledge update cannot change 
 10. Present proposed choices, exclusions, unresolved functions, and residual demands.
 11. Accept human corrections as new inputs or decision revisions; rerun affected checks.
 12. Approve an exact eligible revision and generate an export from that revision.
+
+The function-led path is the initial operating default. An optional row search can supply leads for uncertain function mappings, ambiguous links and residual demands at steps 6–7. A lead may identify documents or configurations worth checking. Confirming an entity link still requires the order-side evidence from §9.
 
 ### 5.3 Separate execution from business state
 
@@ -516,6 +520,37 @@ Ranking is lexicographic: eligibility and evidence sufficiency first; approved p
 
 If multiple candidates pass locally, retain all of them for global planning. Dependencies, resource constraints, and cross-function behavior may resolve that local ambiguity. Only after global feasibility and approved preferences have been considered does an unresolved tie become final `AMBIGUOUS_CHOICE`, with no choice for the ambiguous function in a review draft. A stable display order is allowed, but it must not be mistaken for a justified winner. Partial consensus choices must be revalidated as a draft; they are not assumed to form a complete feasible plan.
 
+### 10.5 Row and function discovery
+
+~~~mermaid
+flowchart LR
+    O["Order blocks with source scope"] --> R["Row queries"]
+    O --> F["Function assessments"]
+    F --> H["Extra row queries for unresolved cases"]
+    R --> L["Candidate leads with provenance"]
+    F --> L
+    H --> L
+    L --> C["Resolve mapping and complete known families"]
+    C --> V["Check candidates and validate the whole order"]
+    R -. "Replay saved hits offline" .-> S["Signed scores and deduplicated shortlist"]
+~~~
+
+Treat a spreadsheet row as a search unit. A pin row can contain both historical and current connections, and a logic row can contain several clauses under one parent condition. Carry the table role, header, instance, enclosing condition, source cells/spans and statement scope into each query. Preserve a disposition for every substantive row, including rows without hits. Several rows can support one requirement, and a single row can support several. Keep competing device identities visible throughout retrieval.
+
+| Discovery policy | Where candidates come from | What to inspect |
+|---|---|---|
+| `function` (initial default) | Use the §9 inventory and §10.2 sequence. Collect order evidence per function, enumerate known families and search lexically when the mapping is uncertain. | A family member can qualify through several conditions together even if it ranks poorly for each separate row. |
+| `row` (order-led comparison) | Query the pinned library for each substantive current-order row or scoped clause. Use the same indexed configuration definitions, aliases and attribute dictionary. Group hits by owning function and configuration revision. | Record retrieved revisions before family expansion, ties, zero-hit rows and limits. A top-K cutoff can omit the only acceptable candidate. |
+| `hybrid` (optional) | Run the function path. Add row queries only for unresolved mappings, competing links or residual demands. Union their leads and apply the same evidence checks. | Record the trigger, newly discovered revisions or mappings, and additional work. A retrieval hit alone cannot resolve an ambiguous join. |
+
+All three policies can feed the same operational checks. Once a function mapping is established, complete its eligible family, prepare reachable dependencies, run the candidate checks, plan and independently validate the order. Keep the full inventory and residual demands visible for all policies. Measure both the **raw discovery** and the **post-expansion** candidate sets. Two policies can reach the same final choice while differing in evidence recovered, number of candidates examined or cost. Keep a truncated or unverified mapping unresolved.
+
+**Row hit records.** T07 records the order and knowledge snapshot IDs, source block and span, statement and instance scope, candidate owner and revision, matched attribute or clause, retrieval method/version, rank and signed score contributions. Keep links to copied-source lineage and the scoring policy version. Load a candidate definition once per pinned revision. Retain all distinct hit-to-source links, including contrary observations. Duplicate copies from one lineage contribute once per distinct attribute observation. A query with no hit still appears in the search trace. Row order and repeated execution must give the same ranked output under a fixed policy and budget.
+
+**Scoring baseline.** For the first offline comparison, count an exact, typed match on a comparable decision attribute as +1 and a confirmed mismatch as −1. Missing, conflicting, inapplicable and display-only fields contribute zero with their reason recorded. Preserve known false and zero as comparable values. Sum deduplicated contributions per configuration revision, then group by function. A deterministic revision ID tie-break only orders the display. Freeze the retrieval limit, comparator, weights, tie handling and minimum proposal score before evaluation. Operational candidate checks continue to distinguish hard conditions from approved preferences as specified in §10.4.
+
+For example, one synthetic option matches the switch type, binding and color preference but fails a mandatory reset. Its score is +2. Include an order where this is the unique highest score and every option fails a necessary condition. The score-only replay must expose the tempting choice, and the checked path must return an unresolved function with the failed condition. This case distinguishes the two decision policies even when candidate recall is identical.
+
 ## 11. Rules and engineering validation
 
 ### 11.1 Evidence and logic readiness
@@ -663,6 +698,10 @@ Start with model concurrency 1. Set per-call timeout to 120 seconds, two transpo
 Record model identity/revision, serving backend, generation settings, prompt/schema versions, packet hash, attempt ID, latency, available usage data, and validation failures. Cache only against the full packet and model/prompt/settings identity. Stale results from older attempts cannot write into a newer decision revision.
 
 Persist concise rationale, explicit comparisons, evidence references, and check results for users. Do not depend on private model reasoning traces as an audit record.
+
+Budget each rendered request with the pinned tokenizer and chat template. Include system text, schema, evidence, candidate clauses and reserved output. Send only if input tokens plus reserved output fit the endpoint window and each fits any separate service cap. Split oversized packets by candidate or clause, retaining parent conditions, exceptions, timing/reset, bindings and source links. Record which obligations each part covers. If any necessary context cannot fit or parts leave coverage incomplete, mark that comparison incomplete for review. Apply the same check to extraction, linking, retries and follow-ups. Row retrieval and attribute scoring use the index and typed comparators with the model disabled.
+
+Track peak input tokens per request separately from total input/output tokens and call count per order. Include retries, cache hits, splits, unsent oversize packets and elapsed time. Report locally counted input separately from provider-reported usage and mark unavailable usage explicitly. Record zero calls for disabled mode. Freeze model, tokenizer, window, output reserve, per-order token/call caps and cache policy for paired comparisons. Reaching a cap preserves unfinished work as unresolved.
 
 ### 13.4 Confidence and automation eligibility
 
@@ -958,7 +997,18 @@ Report denominators, scenario breakdowns, and sample counts. A model that abstai
 
 All mandatory invariant and fault tests must pass; duplicate selections must be zero at application, database, and export layers. No case with known critical conflict may be marked approval-ready in the frozen anchor set. These are test gates, not claims of zero real-world risk.
 
-Compare three retrieval orientations—order-led, catalog-led, and the combined approach—while holding knowledge snapshots, candidate validators, model settings, and evaluation data fixed where possible. Separately ablate evidence normalization, structured attributes, rule use, and whole-order checks. Otherwise a direction change may get credit for an unrelated validator improvement.
+Run two paired experiments on the same synthetic orders. The first changes discovery only. The second holds the row hits constant and tests whether scoring and deduplication alone would produce acceptable decisions.
+
+| Experiment | Runs on each order | Recorded outputs |
+|---|---|---|
+| Discovery | `row`, `function`, `hybrid` (§10.5), each with the same family completion, candidate checks, planner and order validator | Raw hits and zero-hit queries, unique candidates before/after expansion, accepted links and residual demands, checks, final selections or abstentions, reasons, resources used |
+| Decision policy | Replay the identical row-hit artifact. One branch uses signed scores and deduplication only. The other uses the same unique candidate IDs and applicable obligations with hard checks, planning and independent validation. Freeze the candidate pool in both branches and record missing family members/dependencies as incomplete. | Preserve the original raw shortlist including multiple alternatives. For comparable top choices, report the unique highest positive score per function, abstaining on ties or no positive score. Compare both branch outputs against independent acceptable plans/issues. Record raw duplicate-function proposals, wrong choices and missed abstentions before any correction. |
+
+The score-only replay lives in the evaluation runner. It produces hypothetical choices and a diagnostic of which constraints they would violate. Only the checked application path produces a decision revision eligible for review. Keep the fixed-pool replay distinct from end-to-end row discovery, where family completion is required. Test normalization, rule use and other ablations independently after these comparisons.
+
+Pin a manifest per paired case with the input and knowledge hashes, split and case family, parser/index/comparator/planner versions, policy/weights/K, model settings, resource limits, cache state, and artifact hashes. Hold these fixed except for the named experimental factor. Use independent hand-authored expected links, eligible alternatives, acceptable plans or required unresolved outcomes. Include simple exact matches, a valid candidate below every row cutoff, complementary partial matches with no valid single choice, copied rows, ambiguous front/rear or historical pins, cross-function conflicts and a long packet with a decisive trailing exception. Keep variants of a family in the same split. Run deterministic comparisons first, then pair model-enabled runs separately.
+
+Report per-case gains and losses plus §18.4 counts and denominators. Measure candidate recall before and after family completion, wrong accepted links, whole-order correctness, wrong acceptance, correct abstention, and review time/corrections. Report per-order row queries, unique definitions fetched, candidate checks, model calls, total tokens, peak request size, latency, splits, incomplete comparisons and cost when known. A missing or failed run stays in the case ledger. Predeclare quality and resource limits on development data and freeze them before validation. A proposed operational default must pass all invariant gates, introduce zero new critically wrong acceptances on the paired mandatory cases and meet the frozen resource limits. Apply the same adoption test to checked row-led and hybrid discovery. Require a gain in complete-order correctness or reduced measured review effort without regression in the other metric or in correct abstention. If both qualify, prefer higher complete-order correctness, then lower review effort, then lower per-order cost under the same deployment assumptions. Retain the function default for a tie with baseline, inconclusive evidence or missing required measurements. Evaluate the chosen configuration once on untouched families and report failures separately.
 
 Use pytest and custom deterministic metrics first. Add a prompt/model comparison runner when real model calls are introduced; a framework can organize experiments, but domain scoring remains project-owned. LLM grading may assess explanation clarity after human validation, not critical cardinality, polarity, or behavior correctness.
 
@@ -1064,6 +1114,8 @@ render_workbook(decision: DecisionRevision, report: ValidationReport, destinatio
 `KnowledgeInputs` includes parsed library content, reviewed attribute/rule drafts, catalog mapping and composition templates. `prepare_assessments(order: LinkedOrder, knowledge: KnowledgeSnapshot, limit: int = 500) -> AssessmentPreparation` in `retrieval/evidence.py` expands the potential dependency frontier and calls evidence/candidate/check modules. `AssessmentPreparation` contains assessments keyed by context hash, branch-checkable guards, obligation allocations, completeness and issues. The workflow passes the entire `AssessmentPreparation` to the planner, never only the assessment list. The planner verifies required contexts exist before search and propagates incomplete preparation and its issues into the selection plan, blocking completeness and approval claims. Preparation and selection budgets are separate.
 
 `OrderInterpretation` and `LinkedOrder` retain facts, requirements, instance scopes, and unresolved items. `CandidateAssessment` carries check outcomes and evidence sufficiency; it never changes the selected map. `SelectionPlan` records budget exhaustion and unresolved functions, while `ValidationReport` independently determines approval eligibility.
+
+Before building a function evidence context, T07's discovery step consumes the pinned parsed blocks, linked order, knowledge snapshot and policy. It returns tentative leads plus the §10.5 trace. At T09 the run coordinator supplies these to assessment preparation through an optional discovery input, preserving the function-led call above as the default. Resolve leads against the linked order before family expansion. Keep ranked hits in the trace and pass the unique full revisions through the existing `CandidateSet` boundary.
 
 ## 21. Implementation plan and acceptance gates
 
@@ -1312,7 +1364,7 @@ Start each task with its named behavior test, observe the intended failure, impl
 
 - [ ] Add all remaining matrix cases and write tests that deliberately corrupt a decision, duplicate a function selection, or hide a residual demand; the independent evaluator must detect each corruption.
 - [ ] Run `uv run pytest tests/acceptance/test_release_gates.py -q`; confirm the evaluator's negative controls fail when detection is removed.
-- [ ] Implement the Section 18 metrics and isolate test partitions; compare order-led, catalog-led, and combined retrieval with controlled settings.
+- [ ] Implement the paired discovery and fixed-pool decision comparisons in §18.5, including raw row scores, per-order context usage, abstentions and the default-selection gate.
 - [ ] Run `uv run python -m evals.runners.run_suite --split test`; record outcomes without tuning on the test set. Run ablations on development/validation partitions first.
 - [ ] Commit the evaluator, manifests and reproducible reports. Gate: demonstrate useful completion and correct abstention together, not only fewer errors.
 

@@ -10,7 +10,7 @@
 
 **Spec:** [Bus Config AI Detailed Design v3](Bus_Config_AI_Detailed_Design_EN_v3.md). The design defines business behavior; this plan defines implementation order and verification. Preserve both filenames together in the repository `docs/` directory.
 
-**Version:** 1.0 · **Date:** November 16, 2026 · **Status:** Execution-ready planning document; application code, tests, and deployments described here have not yet been created or run.
+**Version:** 1.0, amended November 18, 2026. The [implementation ledger](progress.md) records completed work. The [comparison deliverables](#21-deliverables-for-the-matching-comparison) extend the existing subtasks.
 
 ## Global constraints
 
@@ -98,6 +98,29 @@ The normal sequence is T01 → T02 → T03 → T04 → T05 → T06 → T07 → T
 M1 produces JSON and a readable Markdown draft. The formatted Excel workbook arrives in T14. This avoids making reporting or a graphical interface a prerequisite for proving selection correctness.
 
 Do not commit to a calendar deadline before completing M0 and the parser spikes. At each milestone, record actual focused hours, rework, and unresolved dependencies, then estimate the next milestone. Hardware purchase and GPU rental are not prerequisites for M0/M1.
+
+### 2.1 Deliverables for the matching comparison
+
+The [design protocol](Bus_Config_AI_Detailed_Design_EN_v3.md#185-gates-and-experiments) distinguishes a retrieval experiment from a decision experiment. Keep the 16 packages and 48 subtasks. Start with hand-authored cases at T02.1 and deliver the first model-free comparison at M1.
+
+| Owner | Deliverable | Verification |
+|---|---|---|
+| T02.1–T02.3 | Hand-author expected source links, choices and abstentions. Add a three-table E01 variant whose only valid revision falls below each single-row cutoff, and an E04 variant where every option fails a necessary condition but one has a unique highest positive score. | T02.3 verifies native rendering preserves the decisive clauses, parent conditions and column scopes. Keep related variants in one split and all gold outside the runtime bundle. |
+| T03/T05/T06 | Scoped query inputs with header context, cells/spans, lineage, current/historical scope and competing device identities. Compile reviewed attribute roles and comparators. | Copied mentions retain both source locations. A conflicting assertion remains visible. A historical pin cannot establish current wiring. |
+| T07.1–T07.3 | Implement the [three discovery policies](Bus_Config_AI_Detailed_Design_EN_v3.md#105-row-and-function-discovery) with a shared index, trace and known-family expansion. | Capture zero-hit rows and the extra query that a residual demand triggers. Reordering rows preserves results. Copying an observation preserves its score and adds its source location. |
+| T08/T09 | Share hard checks, planning and independent validation. Deliver a disabled-model paired smoke report at T09.3. | Test the unique valid E01 choice, the E04 abstention and an unchanged row-hit hash across the decision replay. Keep score-only outputs in the evaluator. |
+| T10.1–T10.3 | Preflight the three model adapters and record usage per attempt and order. | Test exactly-at-limit, one-token-over, retry and exhausted-order-budget cases. A trailing exception must survive splitting or leave the comparison incomplete. |
+| T15.1–T15.3 | Run both paired experiments on frozen synthetic families, review case-level differences and apply the adoption gate. | Detect unequal manifests, missing cases, different row-hit hashes in a replay, and wrong acceptances. Report an inconclusive outcome if the evidence cannot support changing the default. |
+
+**Impact on the verified T01.3 code.** Reuse schema 1.0 source IDs, locators, spans, assertions, requirements and entity links. Supply parsed source blocks and an order-scoped lookup alongside the linked order for discovery. This lets T07 inspect an unmapped source row before constructing a per-function evidence context.
+
+| Existing boundary | Adjustment at the owning task |
+|---|---|
+| `CandidateSet` rejects duplicate revision IDs and canonicalizes their order. `SearchMetadata` holds completeness and counts. | T07 adds a separate versioned trace with policy, query dispositions, ranked hit-to-source links, contributions, raw/expanded IDs and budgets. Deduplicate pinned definitions before constructing `CandidateSet`. Keep display ranking in the trace. |
+| `CandidateCheck`, `EvidencePacket`, `SelectionPlan`, `DecisionPayload` and `ValidationReport` already distinguish evidence, checks, choices and hashes. | T08/T09 consume them through the normal pipeline. Bind trace artifacts to snapshots and run/attempt identity. Keep scores and benchmark telemetry outside the decision payload. Put raw replay and gold comparison in `evals/`. |
+| `Settings` covers model mode, retries and search budgets. `ModelRequest` and `ModelResponse` are data contracts. The CLI currently exposes `doctor`. | T09 injects discovery policy at run preparation with the function-led default. T10 adds validated window, output-reserve and per-order budgets plus attempt telemetry. Distinguish unknown usage from zero. T15 owns benchmark options and reports. |
+
+No T01 migration is required. At T07 test schema 1.0 fixtures, stable decision/report hashes and duplicate **selection** rejection alongside positive tests for repeated retrieval hits. If implementation requires a public contract change, update its schema, readers, examples and regression tests together.
 
 ## 3. Tools, skills, and plugins
 
@@ -380,6 +403,8 @@ as far as this subtask needs; do not build a database or model client.
 **Interface:** `build_anchor_suite() -> AnchorSuite`, with `AnchorSuite` defined in `evals/types.py`. Cases include input paths, scenario/split IDs, acceptable plans or required abstention, expected issues, and independent reference notes. Runtime code never imports it.
 
 - [ ] **T02.1 — Define an invented engineering world.** Create fictional controllers, pins, switches, signals, functions, and fixed configuration revisions. Hand-write E01–E10 outcomes before implementing the planner. `test_anchor_selection_cardinality` checks every acceptable reference plan; E04 must have no combined selection. Include E07 ambiguity and E08 reviewed cross-function composition. Deliver the anchor definitions and human-readable reference reasoning.
+
+Include the E01/E04 variants from §2.1. Record the expected evidence relationships and acceptable final outcomes independently of the scoring implementation. Keep retrieval ranks and score expectations in evaluation fixtures.
 - [ ] **T02.2 — Separate answers from application input.** `test_gold_is_not_application_input` rejects gold paths/answer labels in runtime bundles and runtime imports of `evals`; `test_near_duplicates_share_split` keeps variants of one world family together. Keep evaluation answers outside model context and later application images. Deliver split manifest and input-only fixture manifest.
 - [ ] **T02.3 — Render representative native files.** Implement the fixture command from §5.5. Produce pin, logic, switch, attributes, experience XLSX files and a structured function-library DOCX. `test_fixture_manifest_hashes` verifies each generated file hash and deterministic semantic content. Open one order in a spreadsheet/Word viewer and compare the visible cells/headings to the world definition. Deliver a small inspectable fixture bundle; do not claim DOCX/XLSX byte-for-byte determinism if ZIP timestamps vary.
 
@@ -507,6 +532,8 @@ as first-class unresolved records that later stages cannot discard.
 - [ ] **T07.2 — Enumerate the complete known family.** `test_known_function_keeps_all_eligible_alternatives` ensures similarity top-K cannot remove a valid family member. Explicit hard incompatibility may exclude; unknown attributes may not. For uncertain family mapping, use bounded lexical/broader retrieval with 20 then 100 candidates and record completeness. `test_search_limit_does_not_confirm_library_gap` covers E34. Deliver candidate lists with exclusion and search metadata.
 - [ ] **T07.3 — Construct comparison and frontier contracts.** `test_packet_retains_full_config_parent_context` verifies body, function, revision, and differences. Add unit-level frontier discovery for dependencies of every retained candidate and reviewed composition template; `test_frontier_budget_marks_preparation_incomplete` preserves missing nodes. Do not call unfinished candidate validators yet. Deliver packet schema, frontier expansion helper, and baseline retrieval trace.
 
+Use indexed order blocks and the linked order to discover leads before family retrieval. Return the discovery trace and tentative function/revision leads to assessment preparation. Keep uncertain leads separate from confirmed mappings. Test repeated hits on one revision, copy-invariant scores, unretrieved members of a resolved family and the residual-demand trigger in hybrid mode.
+
 **Verification:** `uv run pytest tests/unit/test_retrieval.py -q`. Expected: all alternatives of a known family are accounted for, and truncation is explicit. **Evidence:** candidate/difference matrix and support–conflict–missing packet.
 
 **Codex task prompt:**
@@ -557,6 +584,8 @@ template and complete obligation allocation across different functions.
 - [ ] **T09.2 — Implement bounded global selection.** Use deterministic backtracking over eligible alternatives, with one scalar choice per function, branch-dependent demands, and 10,000-node/30-second limits. Recompute derived demands from roots for each branch. `test_local_tie_resolved_globally`, `test_two_global_solutions_require_review`, `test_parent_replacement_removes_dependency`, and `test_complementary_alternatives_never_combined` cover E37/E07/E10/E04. Exhaustion is not infeasibility. Deliver selected map, unresolved functions, rejected branches, and search-completeness report.
 - [ ] **T09.3 — Validate independently and expose the first runnable pipeline.** The order validator checks the proposed result from original requirements/knowledge rather than trusting planner flags. `test_validator_detects_injected_duplicate`, `test_unmapped_demand_blocks_ready`, and `test_unwanted_shared_output_blocks_ready` cover E23/E36. Add `busconfig run` and plain JSON/Markdown drafts. `test_m1_native_files_to_draft` exercises E01, E04, and E19 from native files. Deliver a repeatable model-free demonstration.
 
+Extend `tests/acceptance/test_m1_pipeline.py` to run the §2.1 E01/E04 pairs through all three discovery modes with zero model calls. Create the minimal offline replay in `evals/runners/ablate_retrieval.py` here. T15 extends it with all case families and the release report. Save case-level JSON with snapshot and row-hit hashes, raw/expanded IDs, checks, choices or abstentions and review-blocking issues. Score-only errors belong in the comparison report. The checked application path must meet its existing M1 gate.
+
 **Verification:** `uv run pytest tests/unit/test_planner.py tests/unit/test_order_validation.py tests/acceptance/test_m1_pipeline.py -q`; run the E01 CLI example in §5.5. Expected: E01 has one correct choice, E04 remains unresolved, E19 exposes the conflict. **Evidence:** complete draft artifacts and independent validation report.
 
 **Codex task prompt:**
@@ -581,6 +610,8 @@ IDs. Build an independent final validator and a model-free CLI draft.
 - [ ] **T10.1 — Implement fake and HTTP clients.** Start with deterministic fixtures. `test_timeout_has_bounded_retries`, `test_invalid_json_gets_one_schema_repair`, and `test_response_preserves_request_identity` cover failure envelopes and E29. Use timeout 120s, two transport retries, one schema repair, and concurrency one. Count retries separately; schema repair is not an unbounded reasoning loop. Deliver request IDs, redacted traces, and a connectivity probe against the selected endpoint.
 - [ ] **T10.2 — Add three separate model contracts.** Order extraction sees source blocks and order context, not configuration candidates. Linking returns alternatives and spans. Candidate comparison sees an allowed-ID packet and structured differences. `test_hallucinated_evidence_id_rejected`, `test_source_instruction_has_no_tool_authority`, `test_model_cannot_override_hard_fail`, and `test_model_claim_needs_semantic_validation` cover E27/E28. At most two evidence-followup cycles per function. Deliver validated proposals and failure reasons, never direct database selections.
 - [ ] **T10.3 — Measure an actual contribution.** Add development cases with paraphrases/unregistered prose and compare disabled, fake, and real-model modes using the same knowledge and validators. `test_model_comparison_manifest_is_complete` requires model revision, prompt hash, settings, input hash, and output validity. Report extraction/link/candidate gains, wrong acceptances, latency, and unresolved cases. Deliver `evals/reports/m2-comparison.md`; a negative result is valid and keeps the feature optional.
+
+Exercise the §2.1 token limits in `tests/unit/test_model_contracts.py`. Count the fully rendered request including schema, chat framing and reserved output. Record peak request size, order totals, splits, blocked attempts and retries. Repeat the long-exception case under a small window and compare its disposition with the intact deterministic check.
 
 **Verification:** `uv run pytest tests/unit/test_model_contracts.py tests/integration/test_model_adapter.py -q`; `uv run python -m evals.runners.compare_models --split dev --output evals/reports/m2`. Default tests use the fake client; the report must explicitly identify any real endpoint run. **Evidence:** real versus mocked test status and measured comparison.
 
@@ -704,8 +735,10 @@ descriptions and make draft versus approved status unmistakable.
 **Interface:** Case-level evaluator reads immutable input/output manifests and isolated gold references. It outputs counts, denominators, scenario breakdowns, failure records, and a gate result. Its critical checks must not simply call the production planner/checker again as an oracle.
 
 - [ ] **T15.1 — Complete E01–E42 and negative controls.** Close the ownership matrix in Section 9. `test_evaluator_detects_corrupted_decision`, `test_evaluator_detects_hidden_residual_demand`, and `test_always_abstain_baseline_is_not_success` prove that the evaluator detects bad outcomes and measures useful completion. Freeze the test split before tuning. Deliver a complete anchor manifest and case-level report.
-- [ ] **T15.2 — Compare retrieval orientations fairly.** Run order-led, catalog-led, and combined retrieval while holding sources, knowledge, validators, model, and budgets constant. Separately ablate normalized evidence, structured attributes, rules, and whole-order checks. Use development/validation data for iteration. `test_ablation_manifest_pins_controlled_factors` rejects incomplete comparisons. Deliver evidence/candidate/demand recall, wrong acceptance, unresolved correctness, latency, and cost/request counts where available.
+- [ ] **T15.2 — Compare retrieval orientations fairly.** Run `row`, `function` and `hybrid` with the same sources, knowledge, validators, model and budgets. Replay the same row-hit artifact under both decision policies as specified in design §18.5. Separately ablate normalized evidence, structured attributes, rules, and whole-order checks. Use development/validation data for iteration. `test_ablation_manifest_pins_controlled_factors` rejects incomplete comparisons. Deliver evidence/candidate/demand recall, wrong acceptance, unresolved correctness, latency, and cost/request counts where available.
 - [ ] **T15.3 — Produce the release decision.** Run the untouched test set once for the declared candidate release, record failures, and publish limitations. Changes after seeing test results require a new version and honest reuse disclosure; they do not make the old test set unseen again. Gate zero observed cardinality violations and no approval-ready result with known critical conflict in the frozen mandatory suite. Deliver `evals/reports/release-v0.1.md` with per-scenario denominators and human review effort.
+
+Extend the M1 replay in `evals/runners/ablate_retrieval.py`. The planned command `uv run python -m evals.runners.ablate_retrieval --split validation` runs both §18.5 experiments. Write a pinned manifest, per-order JSON results and a summary with denominators, resource use, case regressions and the default decision. Test the runner on deliberately corrupted manifests, missing paired cases, misleading partial scores and a lost trailing exception. Freeze thresholds before validation and choose the release policy before opening test results.
 
 **Verification:** `uv run pytest tests/acceptance/test_release_gates.py -q`; `uv run python -m evals.runners.run_suite --split test`; `uv run python -m evals.runners.ablate_retrieval --split validation`. Expected: every scenario has an outcome, unknown denominators are explicit, and failures return a nonzero gate result. **Evidence:** frozen manifests, raw result JSON, readable experiment report.
 
@@ -798,10 +831,10 @@ Run focused tests during each subtask. At a milestone, run the completed layers 
 | Gate | Commands or procedure | Pass condition | Deliverable |
 |---|---|---|---|
 | M0 | T01 tests, `tests/acceptance/test_anchor_integrity.py`, fixture rendering | Cardinality/value invariants pass; independent E01–E10 references | Contract pack + native anchor pack |
-| M1 | `uv run pytest tests/unit tests/integration/test_xlsx_parser.py tests/integration/test_docx_parser.py tests/acceptance/test_m1_pipeline.py -q` | Controlled input produces correct selection/abstention; no lost requirements | Model-free draft demonstration |
+| M1 | `uv run pytest tests/unit tests/integration/test_xlsx_parser.py tests/integration/test_docx_parser.py tests/acceptance/test_m1_pipeline.py -q` | Correct selection/abstention, no lost requirements, reproducible paired E01/E04 smoke report | Model-free draft demonstration |
 | M2 | T10 tests and comparison runner | Invalid model output rejected; gains and regressions measured | Model comparison report |
 | M3 | `uv run pytest tests/unit tests/integration -q`; browser review | Real DB race tests pass; review/approval/export are version-consistent | Review application + example workbooks |
-| M4 | `uv run pytest tests -q`; frozen evaluation; isolated deployment/restore | Mandatory cases pass; restore preserves approved content | Release report + runbook + demo |
+| M4 | `uv run pytest tests -q`; frozen evaluation; isolated deployment/restore | Mandatory cases pass, paired comparison and default decision recorded, restore preserves approved content | Release report + runbook + demo |
 
 At M0/M1, do not run future tests that have not been authored yet. At M4, tests requiring special infrastructure must be configured to fail clearly when the required service is absent, rather than silently passing via mocks.
 
