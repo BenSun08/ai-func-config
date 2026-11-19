@@ -3,9 +3,75 @@
 Design: Bus_Config_AI_Detailed_Design_EN_v3.md
 Plan: Bus_Config_AI_Implementation_Plan_EN_v1.md
 Current milestone: M0
-Current subtask: T01.3
-Status: verified
-Verified date: 2026-11-17 (Asia/Shanghai)
+Current subtask: T02.1
+Status: verified on `codex/t02-1-synthetic-anchors` after review
+Verified date: 2026-11-18 (Asia/Shanghai)
+Next subtask: T02.2
+
+## T02.1 — Synthetic engineering world and reference outcomes
+
+The Mica release covers five configurable functions and thirteen fixed revisions.
+Twelve independent order cases cover E01–E10 plus the two comparison variants.
+Their hand-authored references specify five selections, five required abstentions,
+one resolved exclusion and one rejected submission. The evidence links retain
+the order revision, source cells and statement scope.
+
+| Files changed | Purpose |
+| --- | --- |
+| `synthetic/worlds/core.yaml` | Invented catalog, controllers, pins, signals, switches, reviewed rules, composition trace and versioned order inputs. |
+| `evals/__init__.py`, `evals/types.py`, `evals/gold/anchors.json` | Offline `build_anchor_suite()`, explicit outcome types, source relationships, required issues, reference reasoning and evaluation-only ranks/scores. |
+| `tests/acceptance/test_anchor_integrity.py`, `pyproject.toml` | Acceptance checks. Pytest can import the repository-local evaluator through its console entry point. |
+| `docs/synthetic-data.md`, `docs/decisions.md`, `docs/progress.md` | Case guide, fixture representation and verification record. |
+
+### Commands and observed results
+
+All `uv` commands below used `UV_CACHE_DIR=/tmp/busconfig-uv-cache`.
+
+| Command or check | Result |
+| --- | --- |
+| `git status --short --branch`, `git log -1 --oneline`, `git worktree list` | Started on clean `main` at `29c7fee`. |
+| `uv run pytest -q` before edits | 95 passed. |
+| `uv run pytest tests/acceptance/test_anchor_integrity.py -q` with only the named test written | RED. One assertion failed with “missing hand-authored E01–E10 reference outcomes”. |
+| Same test file with `--tb=line` | Before fixtures, one failure and six missing-evaluator setup errors. After adding the world, gold and loader, the cardinality test passed but console pytest still could not import `evals`. |
+| `uv run python -m pytest tests/acceptance/test_anchor_integrity.py -q --tb=short` | 7 passed. Setting pytest's repository-root import path in `pyproject.toml` then gave 7 passed with the plan's exact console command. |
+| `uv run pytest tests/acceptance/test_anchor_integrity.py -q --tb=short` after adding the E08 timing check | RED. 1 failed, 7 passed. The sender lacked `emit_delay_ms`. Added the fixed sender/receiver timing values supporting the reviewed trace. |
+| `uv run pytest tests/acceptance/test_anchor_integrity.py -q` final | 10 passed, including independent cardinality/ownership checks for every acceptable map, source scopes, both comparison variants and the E08 timing budget. |
+| `uv run pytest tests/unit -q` and `uv run pytest -q` final | 95 unit tests passed. The complete suite passed all 105 tests. No integration directory exists yet. |
+| `uv run ruff format evals tests/acceptance`, `uv run ruff check .`, `uv run ruff format --check evals tests/acceptance` | One test file formatted. Final lint and format checks passed. |
+| `uv run python -` inspecting M32 and trying malformed answers in memory | Loaded all 12 cases. M32's current DIAL-A, awake-only cycle and momentary switch jointly require LEVEL-A.1. Its rank is 2 on all three rows at cutoff 1. Duplicate function key and list-valued selection mutations were both rejected. |
+| `uv build --wheel --out-dir /tmp/busconfig-t021-wheel.vHRJzL` and `python3 -` inspecting its ZIP members | The wheel contained only `busconfig/` and distribution metadata. It contains no fixtures or evaluator. |
+| `git diff`, `git diff --no-index` for new files, `git diff --check`, local Markdown link smoke with `python3 -` | Reviewed the scoped diff, including untracked files. Both links in the new guide resolve. |
+
+**Review and limitations.** Self-reviewed against design §§18 and 22 using the
+executing-plans, test-driven-development and verification-before-completion skills.
+The public examples use the development split. E04.positive's GLINT revision
+scores +2, ahead of SHADE at 0, but misses the mandatory reset. Both remain
+unselected. The ranks, scores and trace are fixture-level evidence. Runtime
+retrieval, planning and model packet construction belong to later tasks.
+
+**Initial handoff.** The first attempt to create the task branch stopped at the
+automatic approval review's usage limit. The user chose to leave the changes
+uncommitted on `main` at that point.
+
+**Pre-push review.** Compared the pending files with `29c7fee` and the T02.1
+business rules. In E08, raising ACK and releasing BUTTON at 60 ms violated
+M40's minimum spacing between input edges. Moved the button release to 100 ms.
+The input edges now occur at 20, 60 and 100 ms. The expected lamp activation
+at 28 ms and reset at 72 ms still hold.
+
+| Review command | Observed result |
+| --- | --- |
+| `uv run pytest tests/acceptance/test_anchor_integrity.py -k e08_review_trace -q --tb=short` before correction | New regression failed on the simultaneous edges. |
+| `uv run pytest tests/acceptance/test_anchor_integrity.py -q` after correction | 11 passed. |
+| `uv run pytest tests/unit -q` and final `uv run pytest -q` | 95 unit tests passed. The full suite passed all 106 tests. |
+| `uv run ruff check .`, `uv run ruff format --check evals tests/acceptance`, `git diff --check` | Passed. |
+| `git switch -c codex/t02-1-synthetic-anchors` | Created the task branch from `29c7fee` after the user requested a commit and push. |
+
+**Next subtask — T02.2.** Add the input-only manifest and family splits, with
+`test_gold_is_not_application_input` and `test_near_duplicates_share_split`.
+T02.3 owns the native fixture command and viewer check. M0 remains open.
+
+# Historical record — T01.3 and matching-comparison planning
 
 ## Matching comparison design and plan — 2026-11-18
 

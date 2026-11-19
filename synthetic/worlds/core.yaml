@@ -1,0 +1,170 @@
+# Source material for the fictional Mica demonstrator. Each order is independent.
+knowledge_id: MICA-K1
+controllers:
+  LOAM: {revision: H3, pins: [J3.6, J3.7, K2.1, K2.2, K2.3]}
+  NACRE: {revision: H1, pins: [T4.1, T4.2, T4.3]}
+signals:
+  DIAL-A: {endpoint: LOAM/J3.6, role: dial input, active: high}
+  DIAL-B: {endpoint: LOAM/J3.7, role: dial input, active: high}
+  BEACON-PAIR: {aisle_input: LOAM/K2.1, desk_input: LOAM/K2.2}
+  CLEAR: {endpoint: LOAM/K2.3, role: clear beacon on rising edge}
+  BUTTON: {endpoint: NACRE/T4.1, role: call button input, active: high}
+  CALL-EDGE: {port: NACRE/local-event-6, encoding: rising pulse, width_ms: 8}
+  ACK: {endpoint: NACRE/T4.2, role: acknowledgement input, active: high}
+  CALL-LIGHT: {endpoint: NACRE/T4.3, role: lamp output, active: high}
+switches:
+  PETAL: {mechanism: momentary, positions: 2}
+  CREST: {mechanism: latching, positions: 2}
+
+# The keys under revisions are the eligible immutable revisions in MICA-K1.
+functions:
+  F-LEVEL:
+    name: Shelf light level
+    behavior: While the gallery is awake, advance once per actuation. Ignore actuations asleep.
+    revisions:
+      LEVEL-A.1: {config_id: LEVEL-A, terms: [shelf dial], binding: DIAL-A, mechanism: momentary, sequence: [0, 2, 5, 0]}
+      LEVEL-B.1: {config_id: LEVEL-B, terms: [shelf dial, reed collar], binding: DIAL-A, mechanism: latching, sequence: [0, 2, 5, 0]}
+      LEVEL-C.1: {config_id: LEVEL-C, terms: [shelf dial, tide step], binding: DIAL-B, mechanism: momentary, sequence: [0, 2, 5, 0]}
+      LEVEL-D.1: {config_id: LEVEL-D, terms: [shelf dial, petal cap], binding: DIAL-A, mechanism: momentary, sequence: [0, 5, 0]}
+  F-BEACON:
+    name: Aisle and desk beacons
+    behavior: One fixed mechanism applies to both inputs in the harness. Actuating either sets its beacon.
+    attribute_roles: {binding: REQUIRED_CONDITION, mechanism: REQUIRED_CONDITION, resets_on_clear: REQUIRED_CONDITION, lens: PREFERENCE}
+    revisions:
+      GLINT.1: {config_id: GLINT, binding: BEACON-PAIR, mechanism: momentary, resets_on_clear: false, lens: lilac}
+      SHADE.1: {config_id: SHADE, binding: BEACON-PAIR, mechanism: latching, resets_on_clear: true, lens: amber}
+  F-TAG:
+    name: Route tag illumination
+    behavior: While enabled illuminate the tag continuously. Otherwise extinguish it.
+    revisions:
+      INK.1: {config_id: INK, socket: slate, driver: linear}
+      INK.2: {config_id: INK, socket: chalk, driver: linear}
+      WAX.1: {config_id: WAX, socket: chalk, driver: switched}
+  F-CALL:
+    name: Stop request counter
+    behavior: Count each rising BUTTON edge once. Holding the button does not retrigger it.
+    revisions:
+      SEND.1: {config_id: SEND, emits: CALL-EDGE, emit_delay_ms: 0, mode: announced}
+      STORE.1: {config_id: STORE, emits: [], mode: local}
+  F-LAMP:
+    name: Call lamp
+    revisions:
+      PULSE.1:
+        config_id: PULSE
+        input: CALL-EDGE
+        output: CALL-LIGHT
+        behavior: Latch on the rising pulse until ACK rises.
+        set_delay_ms: 8
+        ack_clear_delay_ms: 12
+      DC.1: {config_id: DC, input: supply, output: CALL-LIGHT, behavior: Stay on whenever the supply is on. Ignore button and ACK.}
+
+policies:
+  FIT.1:
+    review_state: RELEASED
+    scope: Route tag fit schedule signed by the trim desk
+    meaning: An explicit false excludes the tag. A blank or unsigned entry leaves fitment open.
+    true_means: F-TAG is required
+dependency_rules:
+  FOLLOW.1:
+    review_state: RELEASED
+    when_selected: {function_id: F-CALL, config_revision_id: SEND.1}
+    requires: {function_id: F-LAMP, config_revision_id: PULSE.1}
+    basis: Every announced request needs a pulse receiver. The local counter has no such obligation.
+composition_templates:
+  RELAY.1:
+    review_state: RELEASED
+    pattern: Count the call, light the call lamp on that event, and clear it on acknowledgement.
+    domain: Powered, initially idle. BUTTON and ACK rising edges occur at least 30 ms apart.
+    obligations:
+      F-CALL: Count once and publish an 8 ms CALL-EDGE pulse on each BUTTON rising edge.
+      F-LAMP: Latch CALL-LIGHT high within 12 ms of the pulse rising edge and clear it within 12 ms of ACK.
+    connection: {from: F-CALL, to: F-LAMP, signal: CALL-EDGE, encoding: rising pulse, width_ms: 8}
+    verifier: Mica bench trace R1, reviewed for the stated domain
+    reviewed_trace:
+      - {ms: 0, button: false, ack: false, call_edge: false, count: 0, lamp_on: false}
+      - {ms: 20, button: true, ack: false, call_edge: true, count: 1, lamp_on: false}
+      - {ms: 28, button: true, ack: false, call_edge: false, count: 1, lamp_on: true}
+      - {ms: 60, button: true, ack: true, call_edge: false, count: 1, lamp_on: true}
+      - {ms: 72, button: true, ack: true, call_edge: false, count: 1, lamp_on: false}
+      - {ms: 100, button: false, ack: true, call_edge: false, count: 1, lamp_on: false}
+
+# A source address consists of the versioned order, row ID and column letter.
+# The table key and row number are the prospective sheet and native locator.
+tables:
+  pins:
+    A: {header: Device, scope: CURRENT_ORDER}
+    B: {header: Current connection, scope: CURRENT_ORDER}
+    C: {header: Loom note, scope: CURRENT_ORDER}
+    D: {header: Prior order connection, scope: HISTORICAL_REFERENCE}
+    E: {header: Planned use, scope: PLANNED_USE}
+  logic:
+    A: {header: Item, scope: CURRENT_ORDER}
+    B: {header: Control description, scope: CURRENT_ORDER}
+    C: {header: Reset on CLEAR, scope: CURRENT_ORDER}
+  switches:
+    A: {header: Component, scope: CURRENT_ORDER}
+    B: {header: Mechanism, scope: CURRENT_ORDER}
+    C: {header: Preferred lens, scope: CURRENT_ORDER}
+    D: {header: Switch model, scope: CURRENT_ORDER}
+  trim:
+    A: {header: Component, scope: CURRENT_ORDER}
+    B: {header: Fitted, scope: CURRENT_ORDER}
+    C: {header: Socket, scope: CURRENT_ORDER}
+    D: {header: Signed by, scope: CURRENT_ORDER}
+
+orders:
+  M31-r1:
+    rows:
+      L31: {table: logic, row: 4, cells: {A: Shelf light, B: "Use DIAL-A with a momentary contact. While awake step 0/2/5/0, otherwise ignore presses."}}
+  M32-r1:
+    rows:
+      P32: {table: pins, row: 6, cells: {A: Shelf dial, B: DIAL-A, C: Reed collar, D: DIAL-B, E: spare input}}
+      L32: {table: logic, row: 8, cells: {A: Shelf dial, B: "Tide step. While the gallery is awake advance through 0/2/5/0, once per actuation. While asleep ignore it."}}
+      S32: {table: switches, row: 5, cells: {A: Shelf dial with petal cap, B: momentary, D: PETAL}}
+  M33-r1:
+    rows:
+      T33: {table: trim, row: 4, cells: {A: Route tag, B: false, D: trim desk}}
+  M34-r1:
+    rows:
+      T34: {table: trim, row: 4, cells: {A: Route tag, B: "/", D: trim desk}}
+  M35-r1:
+    rows:
+      L35: {table: logic, row: 7, cells: {A: Aisle and desk beacons, B: Set either beacon by momentary contact. Clear both when CLEAR rises., C: true}}
+  M36-r1:
+    rows:
+      P36: {table: pins, row: 4, cells: {A: Aisle and desk beacons, B: BEACON-PAIR}}
+      S36: {table: switches, row: 5, cells: {A: Beacon keys, B: momentary, C: lilac}}
+      L36: {table: logic, row: 9, cells: {A: Beacon keys, B: While the harness is powered a rising CLEAR must extinguish both beacons., C: true}}
+  M37-r1:
+    rows:
+      S37a: {table: switches, row: 4, cells: {A: Aisle beacon at LOAM/K2.1, B: momentary, D: PETAL}}
+      S37b: {table: switches, row: 5, cells: {A: Desk beacon at LOAM/K2.2, B: latching, D: CREST}}
+  M38-r1:
+    rows:
+      T38: {table: trim, row: 4, cells: {A: Route tag, B: true, D: trim desk}}
+    submission_revision_id: TRIM-D4
+    submitted_rows:
+      - {function_id: F-TAG, config_revision_id: INK.1}
+      - {function_id: F-TAG, config_revision_id: INK.2}
+  M39-r1:
+    rows:
+      T39: {table: trim, row: 4, cells: {A: Route tag, B: true, C: chalk, D: trim desk}}
+      L39: {table: logic, row: 5, cells: {A: Route tag, B: Illuminate continuously while enabled. Either driver technology is approved.}}
+  M40-r1:
+    rows:
+      P40: {table: pins, row: 4, cells: {A: Call button and lamp, B: "BUTTON, NACRE/local-event-6, ACK and CALL-LIGHT"}}
+      L40: {table: logic, row: 7, cells: {A: Stop request, B: "Powered and initially idle, count on the press edge and light the lamp within 12 ms. Hold until ACK, then clear within 12 ms. Input edges are at least 30 ms apart."}}
+  M41-r1:
+    rows:
+      L41a: {table: logic, row: 4, cells: {A: Stop request, B: Count each press once. Local or announced counting is permitted.}}
+      L41b: {table: logic, row: 5, cells: {A: Call lamp, B: Keep lit whenever powered regardless of button or acknowledgement.}}
+  M42-r2:
+    parent_decision:
+      revision_id: CALL-D1
+      order_id: M42-r1
+      knowledge_id: MICA-K1
+      selections: {F-CALL: SEND.1, F-LAMP: PULSE.1}
+      active_dependency_rules: [FOLLOW.1]
+      root_demand: Count announced calls. No independent lamp request.
+    rows:
+      L42: {table: logic, row: 6, cells: {A: Counter change, B: Replace announced counting with local-only counting. Emit no pulse. There is no separate lamp request.}}

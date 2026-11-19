@@ -1,5 +1,15 @@
 # Implementation decisions
 
+## T02.1 — 2026-11-18
+
+- Keep the authored catalog and versioned orders in `synthetic/worlds/core.yaml`.
+  Identify an input cell by order revision, row ID and column. This gives the
+  renderer stable source addresses before native artifacts and their hashes exist.
+- Keep the public development answers, evidence links, rank lists and signed
+  scores in `evals/gold/anchors.json`. The offline loader uses T01 scalar ID
+  and JSON contracts. Each outcome has an explicit kind so an empty draft,
+  resolved exclusion and invalid submission can be assessed separately.
+
 ## T01.3 — 2026-11-17
 
 - Schema 1.0 uses strict opaque IDs, native XLSX/DOCX locators, explicit source

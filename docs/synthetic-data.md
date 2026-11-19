@@ -1,0 +1,64 @@
+# Mica anchor orders
+
+Mica is a fictional demonstrator with two controllers. Its catalog covers lighting,
+stop requests and a multistate shelf dial. The twelve development cases are small
+enough to check against the fixed revisions by hand. All engineering values were
+invented for this suite.
+
+## Reading an order
+
+Open the [engineering world](../synthetic/worlds/core.yaml). The keys under each
+function's `revisions` are the eligible alternatives in release `MICA-K1`.
+Select one versioned entry under `orders` for the order material. Its row IDs
+and the table headers identify current, historical and planned statements.
+For example, `M32-r1 / P32.B` means the full contents of cell B6 on the
+`pins` sheet of that order. D6 on the same row records a historical connection.
+Whole cells preserve the original wording and enclosing conditions. Binary file
+hashes and parser-generated source block IDs come with native rendering and ingestion.
+
+The only authored application material is the world catalog and the requested
+order. M38 includes the submitted rows under review. M42 includes the prior
+decision that the change request addresses. The [reference file](../evals/gold/anchors.json)
+is a separate, evaluator-only document with source relationships, issue codes,
+the acceptable result and the reasoning for each case. A reference result can
+specify acceptable complete selection maps, a resolved exclusion, a required
+abstention or a rejected submission.
+
+| Case | Engineering question | Hand-checked outcome |
+| --- | --- | --- |
+| E01 | Which dial revision meets the binding, contact and full cycle? | LEVEL-A.1 alone. |
+| E01.three-table | Does the same revision meet the clauses spread across the pin, logic and switch sheets? | LEVEL-A.1 alone, despite ranking second on each row. |
+| E02 | Does a signed, explicitly false trim entry exclude the tag? | Exclude F-TAG under FIT.1. |
+| E03 | Does a slash on the signed form establish fitment? | Leave F-TAG empty and ask whether it is fitted. |
+| E04 | Can the beacon accept momentary contacts and reset on CLEAR? | Abstain. The two clauses are covered by different alternatives of F-BEACON. |
+| E04.positive | Can a lens preference compensate for a failed reset? | Abstain. Both revisions fail a necessary condition. |
+| E05 | Can the two beacon endpoints use different mechanisms? | Abstain. The fixed harness applies one mechanism to both. |
+| E06 | Can one submission select two revisions of INK? | Reject the duplicate function rows before constructing a map. |
+| E07 | Can the order distinguish the two eligible chalk-socket drivers? | Abstain for review. Both remain candidates. |
+| E08 | Can the detector and lamp jointly implement a timed request? | SEND.1 and PULSE.1, one per function, through released template RELAY.1. |
+| E09 | Can the counter coexist with an independently required steady lamp? | Choose STORE.1 and DC.1. SEND.1 would require an incompatible lamp. |
+| E10 | What lamp demand survives the change to local-only counting? | Select STORE.1 alone. No active dependency or derived lamp demand remains. |
+
+## Checking the two comparison cases
+
+For **E01.three-table**, start with `M32-r1`. Its pin row specifies DIAL-A as
+the current binding. Its logic row requires the awake-only 0/2/5/0 cycle. Its
+switch row specifies a momentary contact. B fails the contact, C fails the
+binding and D skips level 2. The hand-authored rank lists use a small diagnostic
+policy, `literal-catalog-terms-v1`. Within the shelf-dial family, count each
+distinct catalog term appearing in the lowercased current cells of one row once.
+Sort by decreasing count and then by revision ID. At a cutoff of one, the three
+rows return B, C and D respectively. These ranks are fixture expectations for
+the stated policy. T09.3 will measure the operational retrieval paths.
+
+For **E04.positive**, compare the four current cells identified in the reference
+against each beacon revision. Each observation contributes once under
+`signed-typed-v1`: an exact typed match scores +1 and a confirmed mismatch
+scores −1. GLINT matches three observations and fails reset, yielding +2.
+SHADE matches two and fails contact and lens, yielding 0. Lens is a preference.
+Reset and contact are required, so the checked draft leaves F-BEACON empty.
+
+Run `uv run pytest tests/acceptance/test_anchor_integrity.py -q` for the
+reference integrity checks. Offline callers can load the hand-authored cases
+with `from evals.types import build_anchor_suite`. The loader reads the
+reference file without invoking retrieval, scoring or planning.
