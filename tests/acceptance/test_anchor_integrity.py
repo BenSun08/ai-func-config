@@ -4,19 +4,237 @@ import ast
 import hashlib
 import json
 import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 import yaml
+from docx import Document
+from openpyxl import load_workbook
 
 from evals.types import build_anchor_suite
 from synthetic.inputs import load_order_input
+from synthetic.renderers.fixtures import render
 
 ROOT = Path(__file__).resolve().parents[2]
 GOLD = ROOT / "evals/gold/anchors.json"
 WORLD = ROOT / "synthetic/worlds/core.yaml"
 INPUT_MANIFEST = WORLD.with_name("manifest.json")
 SPLITS = ROOT / "evals/splits.json"
+
+
+def render_fixtures(destination, cwd=ROOT):
+    return subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "synthetic.renderers.fixtures",
+            "--suite",
+            "anchors",
+            "--output",
+            str(destination),
+        ],
+        cwd=cwd,
+        text=True,
+        capture_output=True,
+    )
+
+
+def native_content(path):
+    """Read structure, locators and typed values independently of the renderer."""
+    if path.suffix == ".xlsx":
+        book = load_workbook(path)
+        return [
+            (
+                s.title,
+                sorted(str(area) for area in s.merged_cells.ranges),
+                [
+                    (c.coordinate, c.data_type, c.value)
+                    for row in s
+                    for c in row
+                    if c.value is not None
+                ],
+            )
+            for s in book
+        ]
+    assert path.suffix == ".docx"
+    document = Document(path)
+    return [
+        (block.style.name, block.text)
+        if hasattr(block, "text")
+        else [[c.text for c in row.cells] for row in block.rows]
+        for block in document.iter_inner_content()
+    ]
+
+
+def test_fixture_manifest_hashes(tmp_path, world, native_bundle):
+    expected_paths = {
+        "knowledge/attributes.xlsx",
+        "knowledge/experience.xlsx",
+        "knowledge/function-library.docx",
+        "orders/M38-r1/submission.xlsx",
+        "orders/M42-r2/parent-decision.xlsx",
+    }
+    for order_id, order in world["orders"].items():
+        directory = "E01" if order_id == "M31-r1" else order_id
+        expected_paths.update(
+            f"orders/{directory}/{r['table']}.xlsx" for r in order["rows"].values()
+        )
+
+    second = tmp_path / "second"
+    command = render_fixtures(second)
+    assert command.returncode == 0, command.stderr
+    snapshots = []
+    for destination in (native_bundle, second, ROOT / "tests/fixtures/anchors"):
+        manifest_path = destination / "manifest.json"
+        assert manifest_path.is_file(), f"missing native fixture manifest: {manifest_path}"
+        manifest = json.loads(manifest_path.read_bytes())
+        assert manifest["knowledge_id"] == "MICA-K1"
+        assert manifest["world_sha256"] == hashlib.sha256(WORLD.read_bytes()).hexdigest()
+        entries = {entry["path"]: entry for entry in manifest["files"]}
+        assert len(entries) == len(manifest["files"])
+        assert entries.keys() == expected_paths
+        assert {
+            p.relative_to(destination).as_posix() for p in destination.rglob("*") if p.is_file()
+        } == expected_paths | {"manifest.json"}
+        snapshot = {}
+        for relative, entry in entries.items():
+            path = destination / relative
+            assert hashlib.sha256(path.read_bytes()).hexdigest() == entry["sha256"]
+            snapshot[relative] = (entry | {"sha256": None}, native_content(path))
+        snapshots.append(snapshot)
+    assert snapshots[0] == snapshots[1] == snapshots[2]
+
+
+@pytest.fixture(scope="module")
+def native_bundle(tmp_path_factory):
+    path = tmp_path_factory.mktemp("rendered")
+    result = render_fixtures(path)
+    assert result.returncode == 0, result.stderr
+    return path
+
+
+def test_order_cells_headers_and_scopes_match_world(native_bundle, world):
+    manifest = json.loads((native_bundle / "manifest.json").read_bytes())
+    entries = {(entry["business_revision"], entry["role"]): entry for entry in manifest["files"]}
+    for order_id, order in world["orders"].items():
+        for row_id, row in order["rows"].items():
+            table, number = row["table"], row["row"]
+            entry = entries[order_id, table]
+            assert entry["rows"][row_id] == number
+            sheet = load_workbook(native_bundle / entry["path"])[table]
+            for column, field in world["tables"][table].items():
+                assert sheet[f"{column}{entry['header_row']}"].value == field["header"]
+                scope_cell = sheet[f"{column}{entry['header_row'] - 1}"]
+                for area in sheet.merged_cells.ranges:
+                    if scope_cell.coordinate in area:
+                        scope_cell = sheet.cell(area.min_row, area.min_col)
+                assert scope_cell.value == field["scope"]
+                cell = sheet[f"{column}{number}"]
+                value = row["cells"].get(column)
+                assert type(cell.value) is type(value) and cell.value == value
+                assert cell.data_type != "f"
+
+
+def test_native_knowledge_and_order_history(native_bundle, world):
+    knowledge = native_bundle / "knowledge"
+    document = Document(knowledge / "function-library.docx")
+    headings = [
+        (p.style.name, p.text) for p in document.paragraphs if p.style.name.startswith("Heading")
+    ]
+    expected = []
+    for owner, function in world["functions"].items():
+        expected.append(("Heading 1", f"{owner} — {function['name']}"))
+        expected.extend(("Heading 2", revision) for revision in function["revisions"])
+    assert headings == expected
+    assert world["functions"]["F-LEVEL"]["behavior"] in [p.text for p in document.paragraphs]
+    sheet = load_workbook(knowledge / "attributes.xlsx")["ConfigAttributes"]
+    facts = list(sheet.values)
+    assert ("F-BEACON", "GLINT.1", "resets_on_clear", False, "REQUIRED_CONDITION") in facts
+    assert ("F-BEACON", "GLINT.1", "lens", "lilac", "PREFERENCE") in facts
+    delay = next(row[3] for row in facts if row[1:3] == ("SEND.1", "emit_delay_ms"))
+    assert type(delay) is int and delay == 0
+    rules = load_workbook(knowledge / "experience.xlsx")
+    assert (
+        "FOLLOW.1",
+        "RELEASED",
+        "F-CALL",
+        "SEND.1",
+        "F-LAMP",
+        "PULSE.1",
+        world["dependency_rules"]["FOLLOW.1"]["basis"],
+    ) in list(rules["Dependencies"].values)
+    assert ("RELAY.1", 28, True, False, False, 1, True) in list(rules["ReviewedTrace"].values)
+    orders = native_bundle / "orders"
+    submitted = list(load_workbook(orders / "M38-r1/submission.xlsx").active.values)
+    assert submitted[1:] == [("TRIM-D4", "F-TAG", "INK.1"), ("TRIM-D4", "F-TAG", "INK.2")]
+    parent = load_workbook(orders / "M42-r2/parent-decision.xlsx")
+    assert list(parent["Selections"].values)[1:] == [
+        ("CALL-D1", "F-CALL", "SEND.1"),
+        ("CALL-D1", "F-LAMP", "PULSE.1"),
+    ]
+    assert "HISTORICAL_REFERENCE" in list(parent["Decision"].values)[1]
+
+
+def test_render_reuses_intact_bundle_and_rejects_foreign_files(tmp_path):
+    destination = tmp_path / "anchors"
+    assert render_fixtures(destination).returncode == 0
+    manifest = destination / "manifest.json"
+    original = manifest.read_bytes()
+    assert render_fixtures(destination).returncode == 0
+    assert manifest.read_bytes() == original
+    foreign = destination / "unexpected.txt"
+    foreign.write_text("keep this file")
+    assert render_fixtures(destination).returncode != 0
+    assert foreign.read_text() == "keep this file"
+    assert manifest.read_bytes() == original
+
+
+def test_native_logic_keeps_multiline_parent_and_exception(native_bundle):
+    sheet = load_workbook(native_bundle / "orders/M32-r1/logic.xlsx")["logic"]
+    assert sheet["B8"].value == (
+        "Tide step. While the gallery is awake advance through 0/2/5/0, once per actuation.\n"
+        "While asleep ignore it."
+    )
+
+
+def test_empty_order_inventory_cannot_publish_a_native_manifest(input_dir, tmp_path):
+    inventory = input_dir / "manifest.json"
+    inventory.write_text(json.dumps(json.loads(inventory.read_bytes()) | {"order_ids": []}))
+    destination = tmp_path / "out"
+    with pytest.raises(ValueError):
+        render(destination, input_dir)
+    assert not destination.exists()
+
+
+def test_render_uses_native_columns_and_literal_text(input_dir, world, tmp_path):
+    fields = world["tables"]["pins"]
+    # YAML mapping order has no bearing on the position of a spreadsheet column.
+    world["tables"]["pins"] = {col: fields[col] for col in "ADBEC"}
+    world["orders"]["M32-r1"]["rows"]["P32"]["cells"]["C"] = "=1+2"
+    repin_world(input_dir, world)
+    dest = tmp_path / "out"
+    render(dest, input_dir)
+    pins = load_workbook(dest / "orders/M32-r1/pins.xlsx").active
+    assert {str(area) for area in pins.merged_cells.ranges} >= {"A4:C4"}
+    assert pins["D4"].value == "HISTORICAL_REFERENCE"
+    assert pins["E4"].value == "PLANNED_USE"
+    assert (pins["C6"].value, pins["C6"].data_type) == ("=1+2", "s")
+
+
+@pytest.mark.parametrize("fault", ["duplicate_locator", "unscoped_cell"])
+def test_untraceable_rows_cannot_publish_an_order(input_dir, world, tmp_path, fault):
+    rows = world["orders"]["M37-r1"]["rows"]
+    if fault == "duplicate_locator":
+        rows["S37b"]["row"] = rows["S37a"]["row"]
+    else:
+        rows["S37a"]["cells"]["J"] = "unmapped note"
+    repin_world(input_dir, world)
+    destination = tmp_path / "out"
+    with pytest.raises(ValueError):
+        render(destination, input_dir)
+    assert not destination.exists()
 
 
 def test_gold_is_not_application_input(cases, world, tmp_path):
@@ -34,6 +252,13 @@ def test_gold_is_not_application_input(cases, world, tmp_path):
     with pytest.raises(ValueError, match="unknown order"):
         load_order_input(isolated, "M42-r1")
     assert not runtime_eval_references(ROOT / "src/busconfig")
+    assert not runtime_eval_references(ROOT / "synthetic/renderers")
+    # Run the real command in a checkout containing only the fixture code and its inputs.
+    shutil.copytree(
+        ROOT / "synthetic", tmp_path / "synthetic", ignore=shutil.ignore_patterns("__pycache__")
+    )
+    generated = render_fixtures(tmp_path / "native", cwd=tmp_path)
+    assert generated.returncode == 0, generated.stderr
 
 
 def runtime_eval_references(package):
@@ -112,7 +337,7 @@ def test_authored_world_hash_is_checked(input_dir):
 
 
 def repin_world(input_dir, world):
-    encoded = yaml.safe_dump(world).encode()
+    encoded = yaml.safe_dump(world, sort_keys=False).encode()
     (input_dir / "core.yaml").write_bytes(encoded)
     manifest = input_dir / "manifest.json"
     data = json.loads(manifest.read_bytes())

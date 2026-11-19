@@ -13,8 +13,8 @@ Select one versioned entry under `orders` for the order material. Its row IDs
 and the table headers identify current, historical and planned statements.
 For example, `M32-r1 / P32.B` means the full contents of cell B6 on the
 `pins` sheet of that order. D6 on the same row records a historical connection.
-Whole cells preserve the original wording and enclosing conditions. Binary file
-hashes and parser-generated source block IDs come with native rendering and ingestion.
+Whole cells preserve the original wording and enclosing conditions. The native manifest
+records the file hashes. Ingestion assigns parser-generated source block IDs.
 
 The only authored application material is the world catalog and the requested
 order. M38 includes the submitted rows under review. M42 includes the prior
@@ -43,10 +43,41 @@ pin_cells = source["orders"]["M32-r1"]["rows"]["P32"]["cells"]
 The directory contains exactly `manifest.json` and `core.yaml`. The loader
 rejects extra files, symlinks, digest or inventory mismatches, evaluator
 annotations and gold paths. When editing engineering inputs, review the source
-change before repinning its digest. Use this order-scoped result as the source
-for rendering. The evaluator, tests and this answer-bearing guide live outside
-the application distribution. T02.3 will produce the native files. T16 owns
-the application image and its build-context exclusions.
+change before repinning its digest. The renderer iterates over the scoped inputs
+from a single verified read. The evaluator, tests and this answer-bearing guide
+live outside the application distribution. T16 owns the application image and
+its build-context exclusions.
+
+### Inspecting the native files
+
+From the repository root, run:
+
+```sh
+uv run python -m synthetic.renderers.fixtures --suite anchors --output runtime/anchors
+```
+
+The [canonical pack](../tests/fixtures/anchors/manifest.json) contains 22 workbooks
+and one Word library. The command writes the same engineering material to the
+requested directory. An identical existing pack can be reused. If a pack was
+edited or contains other files, render to a fresh directory to preserve those edits.
+The manifest pins each file's SHA-256, role, business revision and layout profile.
+For an order table it also maps authored row IDs to native rows and locates the
+column headers. The scope band sits immediately above those headers.
+
+| Open | What to inspect |
+| --- | --- |
+| [M32-r1 pin sheet](../tests/fixtures/anchors/orders/M32-r1/pins.xlsx) | B6 is the current DIAL-A connection. D6 records historical DIAL-B. E6 is planned use. |
+| [Logic sheet](../tests/fixtures/anchors/orders/M32-r1/logic.xlsx) and [switch sheet](../tests/fixtures/anchors/orders/M32-r1/switches.xlsx) | B8 keeps the awake-only 0/2/5/0 cycle and the sleep exception in one multiline cell. The momentary mechanism and PETAL switch model occupy B5 and D5 on the switch sheet. |
+| [Function library](../tests/fixtures/anchors/knowledge/function-library.docx) | Each function heading owns its revision headings and field/value tables. |
+| [Attributes](../tests/fixtures/anchors/knowledge/attributes.xlsx) and [experience](../tests/fixtures/anchors/knowledge/experience.xlsx) | Inspect the typed candidate values, decision roles, hardware catalog, reviewed rules and timed composition trace. Sequence and mapping cells use JSON. |
+
+Give a consumer the shared `knowledge/` files and one `orders/` directory.
+The plan's public demo path `orders/E01` contains business revision `M31-r1`.
+The other directories use their business revision IDs. M38 includes both original
+submission rows. M42 includes the historical parent decision and its separate
+current change request. Keep answer lookups in the offline evaluator.
+
+### Independent evaluation
 
 The offline [split manifest](../evals/splits.json) assigns whole families to
 partitions. The suite loader checks every case's declared split against that

@@ -79,8 +79,7 @@ def _check_reference_fields(value):
             raise ValueError("evaluation path in fixture content")
 
 
-def load_order_input(bundle_dir: Path, order_id: str) -> dict:
-    """T02.3 renderer input. The result has the world layout with exactly one order."""
+def _read_world(bundle_dir: Path):
     manifest_file = bundle_dir / "manifest.json"
     files = list(bundle_dir.iterdir())
     if {file.name for file in files} != {"manifest.json", "core.yaml"} or any(
@@ -98,6 +97,23 @@ def load_order_input(bundle_dir: Path, order_id: str) -> dict:
     orders = world.get("orders")
     if not isinstance(orders, dict) or sorted(orders) != sorted(manifest.order_ids):
         raise ValueError("fixture order inventory differs from manifest")
-    if order_id not in orders:
+    return manifest, world
+
+
+def _scope_order(world, order_id):
+    if order_id not in world["orders"]:
         raise ValueError(f"unknown order: {order_id}")
-    return {**world, "orders": {order_id: orders[order_id]}}
+    return {**world, "orders": {order_id: world["orders"][order_id]}}
+
+
+def load_order_input(bundle_dir: Path, order_id: str) -> dict:
+    """Load a verified catalog and exactly one order."""
+    _, world = _read_world(bundle_dir)
+    return _scope_order(world, order_id)
+
+
+def iter_order_inputs(bundle_dir: Path):
+    """Render every order from the same verified source bytes and inventory."""
+    manifest, world = _read_world(bundle_dir)
+    for order_id in manifest.order_ids:
+        yield manifest.sha256, order_id, _scope_order(world, order_id)

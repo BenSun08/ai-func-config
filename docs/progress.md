@@ -2,11 +2,67 @@
 
 Design: Bus_Config_AI_Detailed_Design_EN_v3.md
 Plan: Bus_Config_AI_Implementation_Plan_EN_v1.md
-Current milestone: M0
-Current subtask: T02.2
-Status: verified locally on `codex/t02-2-fixture-isolation`
-Verified date: 2026-11-19 (Asia/Shanghai)
-Next subtask: T02.3
+Current milestone: M0 (local gate passed)
+Current subtask: T02.3
+Status: verified locally on `codex/t02-3-native-fixtures`
+Verified date: 2026-11-20 (Asia/Shanghai)
+Next subtask: T03.1
+
+## T02.3 — Native anchor fixtures
+
+The [input-only native manifest](../tests/fixtures/anchors/manifest.json) inventories
+22 XLSX files and one DOCX, totalling 159,118 native-file bytes. Twelve order
+revisions share one MICA-K1 catalog. The 12 independent references still specify
+five selections, five required abstentions, one resolved exclusion and one
+rejected submission. The public `orders/E01` directory implements the §5.5 demo
+path for business revision M31-r1.
+
+| Files changed | Purpose |
+| --- | --- |
+| `synthetic/{__init__,inputs}.py`, `synthetic/renderers/{__init__,fixtures}.py` | Verify the input snapshot once, render its catalog and scoped orders, and publish a complete directory with hashes, revisions, roles, layout profiles and source row locators. An intact output is reusable. |
+| `synthetic/worlds/{core.yaml,manifest.json}` | Give the sleep exception in M32-r1 L32.B its own line in the same cell and repin the world. A parsed comparison with the base identified this single whitespace change. |
+| `tests/fixtures/anchors/`, `tests/acceptance/test_anchor_integrity.py` | Commit the inspectable native pack. Compare two fresh renders with it, check every file digest, and read native cells, merged scope bands, revision ownership and decision history. |
+| `docs/{synthetic-data,progress}.md` | Add the fixture command, navigation, visual review and verification record. |
+
+### Commands and observed results
+
+All `uv` commands used `UV_CACHE_DIR=/tmp/busconfig-uv-cache`.
+
+| Command or check | Observed result |
+| --- | --- |
+| `git status --short --branch --untracked-files=all`, `git log -3 --oneline`, `git switch -c codex/t02-3-native-fixtures` | Clean main at `6034698`. Created the local task branch there. |
+| `uv run pytest -q` before edits | 128 passed. |
+| `uv run pytest tests/acceptance/test_anchor_integrity.py::test_fixture_manifest_hashes -q --tb=short` before implementation | RED. The real CLI produced no native manifest. Its renderer module was missing. |
+| `uv run pytest tests/acceptance/test_anchor_integrity.py -k 'fixture_manifest_hashes or order_cells_headers or native_knowledge or render_reuses' -q --tb=short` | Initial renderer passed all four behaviors. |
+| `uv run pytest tests/acceptance/test_anchor_integrity.py -k 'multiline_parent or empty_order_inventory' -q --tb=short` | Both failed. L32.B was single-line and an empty inventory could publish a manifest. Added the authored line break and shared the validated loader with the suite iterator. Both passed in the six-test rerun. |
+| `uv run pytest tests/acceptance/test_anchor_integrity.py -k 'fixture_manifest_hashes or render_uses_native or untraceable_rows' -q --tb=short` | Four failures exposed the missing canonical pack, a scope band dependent on YAML key order, overlapping source rows, and a cell with no defined column. Generated the pack, grouped scopes by physical column and rejected untraceable cells before publication. |
+| `uv run python -m synthetic.renderers.fixtures --suite anchors --output tests/fixtures/anchors`, then the same command with `--output runtime/anchors` | Both produced the input manifest and 23 native files. `diff -qr runtime/anchors tests/fixtures/anchors` passed. |
+| `uv run pytest tests/acceptance/test_anchor_integrity.py::test_fixture_manifest_hashes -q` | 1 passed. Every declared SHA-256 matched its file. Reopened workbooks and documents agreed semantically across both fresh renders and the canonical pack. |
+| `uv run pytest tests/acceptance/test_anchor_integrity.py -q` | First full run flagged the existing input loader's forbidden-path literal as an evaluator dependency. Scoped that static check to the renderer and exercised the command from a fixture-only checkout. Final run: 42 passed. |
+| `uv run pytest tests/unit -q`, `uv run pytest -q` | 95 unit tests passed. All 137 repository tests passed. Integration tests begin at T03. |
+| `uv run ruff check .`, `uv run ruff format --check synthetic tests/acceptance`, `git diff --check` | Passed. |
+| `uv run python -I -` isolation smoke | Rendered the pack with only the synthetic package and installed dependencies available. Confirmed `evals` was unavailable. The manifest matched the runtime copy. An offline scan checked ZIP CRCs and all XML parts for evaluator labels and reference notes. |
+| `uv run python -` source and Markdown checks, `git diff --exit-code HEAD -- src evals` | The authored world differs only by the L32.B line break. All 11 guide links resolve. Runtime sources, answers and family assignments match the base. |
+
+**Viewer comparison.** Opened all three M32-r1 workbooks in LibreOffice Calc
+using `soffice --headless --convert-to pdf`, rasterized the pages with
+`pdftoppm` and inspected the visible text. B6 showed current DIAL-A, D6
+historical DIAL-B and E6 planned spare input. Logic B8 retained the awake-only
+0/2/5/0 sequence and the sleep exception. Switches B5/D5 showed momentary/PETAL.
+The bundled `render_docx.py --emit_pdf` opened the library in LibreOffice
+Writer. Its five rendered pages showed all five function headings and thirteen
+revision headings under their respective owners. macOS Quick Look also displayed
+the current pin and the F-LEVEL heading with its four revisions. An additional
+Numbers import displayed a blank sheet and exposed no table to the UI check.
+The Calc and Writer page inspections supplied the required viewer evidence.
+
+**M0 gate and handoff.** The T01 contract tests, T02 anchor integrity and native
+fixture gate passed locally. Self-reviewed the scoped diff. No implementation
+blocker. Reproducibility evidence covers the pinned local tools and the native
+content checked by the tests. The independent families for validation and test,
+parser behavior and matching metrics belong to later work. Cumulative focused
+hours for M0 were not measured. Next is **T03.1**, extraction of merged headers,
+multiline cells and column scope with native provenance.
 
 ## T02.2 — Input isolation and family splits
 
