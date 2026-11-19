@@ -24,6 +24,36 @@ the acceptable result and the reasoning for each case. A reference result can
 specify acceptable complete selection maps, a resolved exclusion, a required
 abstention or a rejected submission.
 
+### Loading fixture inputs
+
+The [input manifest](../synthetic/worlds/manifest.json) pins the catalog ID,
+the order IDs and the SHA-256 of the authored YAML. Give the fixture loader the
+manifest's directory and one order ID. It returns the shared catalog and that
+order's source material, including any submitted rows or historical decision
+that belongs to the order.
+
+```python
+from pathlib import Path
+from synthetic.inputs import load_order_input
+
+source = load_order_input(Path("synthetic/worlds"), "M32-r1")
+pin_cells = source["orders"]["M32-r1"]["rows"]["P32"]["cells"]
+```
+
+The directory contains exactly `manifest.json` and `core.yaml`. The loader
+rejects extra files, symlinks, digest or inventory mismatches, evaluator
+annotations and gold paths. When editing engineering inputs, review the source
+change before repinning its digest. Use this order-scoped result as the source
+for rendering. The evaluator, tests and this answer-bearing guide live outside
+the application distribution. T02.3 will produce the native files. T16 owns
+the application image and its build-context exclusions.
+
+The offline [split manifest](../evals/splits.json) assigns whole families to
+partitions. The suite loader checks every case's declared split against that
+assignment. All four current families are public development examples. The
+validation and test partitions are empty until independent families are authored.
+Add a paraphrase or related order to its existing family.
+
 | Case | Engineering question | Hand-checked outcome |
 | --- | --- | --- |
 | E01 | Which dial revision meets the binding, contact and full cycle? | LEVEL-A.1 alone. |

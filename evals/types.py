@@ -1,4 +1,4 @@
-"""Offline reference outcomes. Loading the suite reads only the authored gold file."""
+"""Offline reference outcomes and family split assignments."""
 
 from pathlib import Path
 from typing import Annotated, Literal
@@ -89,6 +89,30 @@ class AnchorSuite(DomainModel):
     cases: Annotated[tuple[AnchorCase, ...], Field(min_length=1)]
 
 
-def build_anchor_suite() -> AnchorSuite:
-    path = Path(__file__).parent / "gold" / "anchors.json"
-    return AnchorSuite.model_validate_json(path.read_bytes())
+class _FamilySplits(DomainModel):
+    development: tuple[Identifier, ...]
+    validation: tuple[Identifier, ...]
+    test: tuple[Identifier, ...]
+
+    def check(self, suite: AnchorSuite) -> None:
+        by_family = {}
+        for split, families in self.model_dump().items():
+            for family in families:
+                if family in by_family:
+                    raise ValueError(f"repeated family in split manifest: {family}")
+                by_family[family] = split
+        if set(by_family) != {case.family_id for case in suite.cases}:
+            raise ValueError("split manifest differs from anchor families")
+        for case in suite.cases:
+            if by_family[case.family_id] != case.split_id:
+                raise ValueError(f"case disagrees with its family split: {case.case_id}")
+
+
+def build_anchor_suite(*, evaluation_dir: Path = Path(__file__).parent) -> AnchorSuite:
+    suite = AnchorSuite.model_validate_json((evaluation_dir / "gold/anchors.json").read_bytes())
+    for case in suite.cases:
+        if case.input_paths != ("synthetic/worlds/manifest.json",):
+            raise ValueError(f"case requires the authored input manifest: {case.case_id}")
+    splits = _FamilySplits.model_validate_json((evaluation_dir / "splits.json").read_bytes())
+    splits.check(suite)
+    return suite

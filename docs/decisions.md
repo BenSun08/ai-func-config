@@ -1,5 +1,14 @@
 # Implementation decisions
 
+## T02.2 — 2026-11-19
+
+- Store an input manifest alongside the authored world. Its digest pins the
+  file bytes. A fixture consumer supplies an order ID and receives the shared
+  catalog plus that order, including its own evidence and historical state.
+- Assign whole families to partitions in the offline split manifest. Keep the
+  twelve previously published anchors in development. Validation and test
+  require new independent families before either can support a measurement.
+
 ## T02.1 — 2026-11-18
 
 - Keep the authored catalog and versioned orders in `synthetic/worlds/core.yaml`.
