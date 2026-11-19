@@ -2,7 +2,7 @@
   "cases": [
     {
       "case_id": "E01", "scenario_id": "E01", "family_id": "shelf-dial", "split_id": "development",
-      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M31-r1", "knowledge_id": "MICA-K1",
+      "input_paths": ["synthetic/worlds/manifest.json"], "order_id": "M31-r1", "knowledge_id": "MICA-K1",
       "evidence_links": [
         {"sources": ["L31.B"], "target": "F-LEVEL", "relation": "Current binding, contact and awake-only cycle", "scope": "CURRENT_ORDER"}
       ],
@@ -12,7 +12,7 @@
     },
     {
       "case_id": "E01.three-table", "scenario_id": "E01", "family_id": "shelf-dial", "split_id": "development",
-      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M32-r1", "knowledge_id": "MICA-K1",
+      "input_paths": ["synthetic/worlds/manifest.json"], "order_id": "M32-r1", "knowledge_id": "MICA-K1",
       "evidence_links": [
         {"sources": ["P32.A", "L32.A", "S32.A"], "target": "F-LEVEL", "relation": "Three descriptions of the same shelf dial", "scope": "CURRENT_ORDER"},
         {"sources": ["P32.B", "L32.B", "S32.B"], "target": "LEVEL-A.1", "relation": "Current DIAL-A, awake-only cycle including 2, and momentary operation jointly required", "scope": "CURRENT_ORDER"},
@@ -33,7 +33,7 @@
     },
     {
       "case_id": "E02", "scenario_id": "E02", "family_id": "route-tag", "split_id": "development",
-      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M33-r1", "knowledge_id": "MICA-K1",
+      "input_paths": ["synthetic/worlds/manifest.json"], "order_id": "M33-r1", "knowledge_id": "MICA-K1",
       "evidence_links": [
         {"sources": ["T33.A", "T33.B", "T33.D"], "target": "FIT.1", "relation": "Signed explicit false for this component", "scope": "CURRENT_ORDER"}
       ],
@@ -43,7 +43,7 @@
     },
     {
       "case_id": "E03", "scenario_id": "E03", "family_id": "route-tag", "split_id": "development",
-      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M34-r1", "knowledge_id": "MICA-K1",
+      "input_paths": ["synthetic/worlds/manifest.json"], "order_id": "M34-r1", "knowledge_id": "MICA-K1",
       "evidence_links": [
         {"sources": ["T34.A", "T34.B", "T34.D"], "target": "FIT.1", "relation": "Signed form with blank fitment cell", "scope": "CURRENT_ORDER"}
       ],
@@ -53,7 +53,7 @@
     },
     {
       "case_id": "E04", "scenario_id": "E04", "family_id": "paired-beacons", "split_id": "development",
-      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M35-r1", "knowledge_id": "MICA-K1",
+      "input_paths": ["synthetic/worlds/manifest.json"], "order_id": "M35-r1", "knowledge_id": "MICA-K1",
       "evidence_links": [
         {"sources": ["L35.B", "L35.C"], "target": "F-BEACON", "relation": "One function must both accept momentary contacts and clear the beacons", "scope": "CURRENT_ORDER"}
       ],
@@ -63,7 +63,7 @@
     },
     {
       "case_id": "E04.positive", "scenario_id": "E04", "family_id": "paired-beacons", "split_id": "development",
-      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M36-r1", "knowledge_id": "MICA-K1",
+      "input_paths": ["synthetic/worlds/manifest.json"], "order_id": "M36-r1", "knowledge_id": "MICA-K1",
       "evidence_links": [
         {"sources": ["P36.B", "S36.B", "L36.B", "L36.C"], "target": "F-BEACON", "relation": "Fixed harness, contact and mandatory powered reset", "scope": "CURRENT_ORDER"},
         {"sources": ["S36.C"], "target": "F-BEACON", "relation": "Reviewed lens preference", "scope": "CURRENT_ORDER"}
@@ -80,7 +80,7 @@
     },
     {
       "case_id": "E05", "scenario_id": "E05", "family_id": "paired-beacons", "split_id": "development",
-      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M37-r1", "knowledge_id": "MICA-K1",
+      "input_paths": ["synthetic/worlds/manifest.json"], "order_id": "M37-r1", "knowledge_id": "MICA-K1",
       "evidence_links": [
         {"sources": ["S37a.A", "S37a.B", "S37b.A", "S37b.B"], "target": "F-BEACON", "relation": "Different installed mechanisms on the two inputs of one fixed harness", "scope": "CURRENT_ORDER"}
       ],
@@ -90,7 +90,7 @@
     },
     {
       "case_id": "E06", "scenario_id": "E06", "family_id": "route-tag", "split_id": "development",
-      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M38-r1", "knowledge_id": "MICA-K1",
+      "input_paths": ["synthetic/worlds/manifest.json"], "order_id": "M38-r1", "knowledge_id": "MICA-K1",
       "evidence_links": [
         {"sources": ["T38.B", "T38.D"], "target": "F-TAG", "relation": "Signed fitment establishes one required function", "scope": "CURRENT_ORDER"}
       ],
@@ -100,7 +100,7 @@
     },
     {
       "case_id": "E07", "scenario_id": "E07", "family_id": "route-tag", "split_id": "development",
-      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M39-r1", "knowledge_id": "MICA-K1",
+      "input_paths": ["synthetic/worlds/manifest.json"], "order_id": "M39-r1", "knowledge_id": "MICA-K1",
       "evidence_links": [
         {"sources": ["T39.B", "T39.C", "T39.D", "L39.B"], "target": "F-TAG", "relation": "Confirmed chalk socket and technology-neutral behavior", "scope": "CURRENT_ORDER"}
       ],
@@ -110,7 +110,7 @@
     },
     {
       "case_id": "E08", "scenario_id": "E08", "family_id": "stop-call", "split_id": "development",
-      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M40-r1", "knowledge_id": "MICA-K1",
+      "input_paths": ["synthetic/worlds/manifest.json"], "order_id": "M40-r1", "knowledge_id": "MICA-K1",
       "evidence_links": [
         {"sources": ["P40.B", "L40.B"], "target": "RELAY.1", "relation": "Endpoints and timed obligations fall within the reviewed trace domain", "scope": "CURRENT_ORDER"}
       ],
@@ -120,7 +120,7 @@
     },
     {
       "case_id": "E09", "scenario_id": "E09", "family_id": "stop-call", "split_id": "development",
-      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M41-r1", "knowledge_id": "MICA-K1",
+      "input_paths": ["synthetic/worlds/manifest.json"], "order_id": "M41-r1", "knowledge_id": "MICA-K1",
       "evidence_links": [
         {"sources": ["L41a.B"], "target": "F-CALL", "relation": "Either counting mode is locally admissible", "scope": "CURRENT_ORDER"},
         {"sources": ["L41b.B"], "target": "F-LAMP", "relation": "Independent root demand requires steady operation", "scope": "CURRENT_ORDER"}
@@ -131,7 +131,7 @@
     },
     {
       "case_id": "E10", "scenario_id": "E10", "family_id": "stop-call", "split_id": "development",
-      "input_paths": ["synthetic/worlds/core.yaml"], "order_id": "M42-r2", "knowledge_id": "MICA-K1",
+      "input_paths": ["synthetic/worlds/manifest.json"], "order_id": "M42-r2", "knowledge_id": "MICA-K1",
       "evidence_links": [
         {"sources": ["L42.B"], "target": "F-CALL", "relation": "New local-only requirement supersedes the announced parent mode", "scope": "CURRENT_ORDER"}
       ],

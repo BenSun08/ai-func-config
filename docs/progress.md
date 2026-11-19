@@ -3,10 +3,52 @@
 Design: Bus_Config_AI_Detailed_Design_EN_v3.md
 Plan: Bus_Config_AI_Implementation_Plan_EN_v1.md
 Current milestone: M0
-Current subtask: T02.1
-Status: verified on `codex/t02-1-synthetic-anchors` after review
-Verified date: 2026-11-18 (Asia/Shanghai)
-Next subtask: T02.2
+Current subtask: T02.2
+Status: verified locally on `codex/t02-2-fixture-isolation`
+Verified date: 2026-11-19 (Asia/Shanghai)
+Next subtask: T02.3
+
+## T02.2 — Input isolation and family splits
+
+The input manifest pins the authored world and all 12 order revisions. The
+fixture loader returns the catalog and one order. The offline evaluator checks
+each anchor's input pointer and family split. The 12 hand-authored outcomes
+and their reasoning match the pulled baseline, including all five abstentions.
+
+| Files changed | Purpose |
+| --- | --- |
+| `synthetic/worlds/manifest.json`, `synthetic/inputs.py` | Input-only inventory, digest verification, order scoping and rejection of evaluator material. |
+| `evals/splits.json`, `evals/types.py`, `evals/gold/anchors.json` | Family assignments and consistency checks. Only the 12 input pointers changed in the answers. |
+| `tests/acceptance/test_anchor_integrity.py` | Check actual bundles and case families, then inject contaminants and split errors into temporary copies. Check runtime Python imports and literal evaluator references. |
+| `docs/synthetic-data.md`, `docs/decisions.md`, `docs/progress.md` | Loader usage, partition policy and verification record. |
+
+### Verification
+
+All `uv` commands used `UV_CACHE_DIR=/tmp/busconfig-uv-cache`.
+
+| Actual command or check | Observed result |
+| --- | --- |
+| `git status --short --branch --untracked-files=all`, `git switch main`, `git pull --ff-only origin main`, `git switch -c codex/t02-2-fixture-isolation` | Started on clean T02.1 at `f11c2b5`. Local main fast-forwarded from `29c7fee` to `f729251`. Created the local task branch there. |
+| `uv run pytest -q` before edits | 106 passed. |
+| `uv run pytest tests/acceptance/test_anchor_integrity.py -k 'gold_is_not_application_input or near_duplicates_share_split' -q --tb=short` before implementation | Both named tests failed on their missing manifests. With additional negative cases, the acceptance file initially had 12 failures and 15 passes. |
+| `uv run pytest tests/acceptance/test_anchor_integrity.py -k 'nested_gold_path or answer_header or direct_application' -q --tb=short` | Three new cases failed because nested gold paths, answer headers and an evaluator redirect were accepted. All three passed after closing those paths. |
+| `uv run pytest tests/acceptance/test_anchor_integrity.py -k engineering_expectation -q --tb=line` | RED on the legitimate “Expected input voltage” header. Narrowed the label check to evaluation terms. |
+| Final named test command with `-q`, then `uv run pytest tests/acceptance/test_anchor_integrity.py -q` | 2 named tests passed. All 33 acceptance tests passed. |
+| `uv run pytest tests/unit -q` and `uv run pytest -q` | 95 unit tests passed and 128 passed in the full suite. The integration directory does not exist yet. |
+| `uv run ruff check .`, `uv run ruff format --check evals synthetic tests/acceptance`, `git diff --check` | Passed. |
+| `uv build --out-dir /tmp/busconfig-t022-dist.udFCUK` and `uv run python -I -` artifact smoke | Built the source distribution and wheel. Inspected archive members. With only the wheel, fixture loader and input directory available as project inputs, loaded M34-r1 and round-tripped its scoped payload through the model request data contract. The slash cell survived and the evaluator was unavailable. |
+| `python3 -` comparing gold to `git show f729251:evals/gold/anchors.json`, checking world/runtime diffs and guide links | Only the input path changed in each of the 12 cases. The authored world and runtime sources match the base. All four local guide links resolve. |
+
+**Review and limits.** Scoped self-review against T02 and design §§18 and 22.
+All four public families remain in development. Validation and test are empty.
+The isolation checks cover the authored bundle, package artifacts, ordinary
+runtime imports and literal references. Review is still needed for the meaning
+of new free-text engineering evidence. Live inference and container image
+verification belong to their owning tasks. No implementation blockers.
+
+**Next subtask — T02.3.** Render the native XLSX and DOCX fixtures from the
+scoped inputs, verify file hashes and semantic content, and compare one order
+in spreadsheet and document viewers. M0 remains open.
 
 ## T02.1 — Synthetic engineering world and reference outcomes
 

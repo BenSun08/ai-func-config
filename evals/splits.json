@@ -1,0 +1,5 @@
+{
+  "development": ["shelf-dial", "route-tag", "paired-beacons", "stop-call"],
+  "validation": [],
+  "test": []
+}
