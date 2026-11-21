@@ -1,0 +1,244 @@
+{
+  "knowledge_id": "MICA-K1",
+  "world_sha256": "4dbb24f9f71093f4ee0eaac110cba2f4c579be1fe257bb43bbd462372797dde9",
+  "files": [
+    {
+      "path": "knowledge/attributes.xlsx",
+      "role": "attributes",
+      "business_revision": "MICA-K1",
+      "layout_profile": "mica-attributes-v1",
+      "sha256": "8bdfa07faff9dc2a00d8ebc42c41a8fd8486f8acdee83c3b60a98cc8cbfcb8ee"
+    },
+    {
+      "path": "knowledge/experience.xlsx",
+      "role": "experience",
+      "business_revision": "MICA-K1",
+      "layout_profile": "mica-experience-v1",
+      "sha256": "21cd9218270ef6ff41c7f90c8147f83a63914f6f1d3fdf97bdec934708a3cc32"
+    },
+    {
+      "path": "knowledge/function-library.docx",
+      "role": "function-library",
+      "business_revision": "MICA-K1",
+      "layout_profile": "mica-function-library-v1",
+      "sha256": "27c16921215ce6853fb329665de4f2b2adf55b6d52f374630f9ce526893cab80"
+    },
+    {
+      "path": "orders/E01/logic.xlsx",
+      "role": "logic",
+      "business_revision": "M31-r1",
+      "layout_profile": "mica-logic-v1",
+      "sha256": "c00bcad1e7dfbd5953a3e647b6371ed2b48f7b8f8212a170a416aa6a071654b0",
+      "header_row": 3,
+      "rows": {
+        "L31": 4
+      }
+    },
+    {
+      "path": "orders/M32-r1/logic.xlsx",
+      "role": "logic",
+      "business_revision": "M32-r1",
+      "layout_profile": "mica-logic-v1",
+      "sha256": "ee73bebf1138a6875cf2066c82bf1977340217eccf6636b82d041f9b33ae7873",
+      "header_row": 7,
+      "rows": {
+        "L32": 8
+      }
+    },
+    {
+      "path": "orders/M32-r1/pins.xlsx",
+      "role": "pins",
+      "business_revision": "M32-r1",
+      "layout_profile": "mica-pins-v1",
+      "sha256": "38fe948b7c7d4da93440fcdbd98a6598a5be4e8c35ca0a244481b9506bbec1ae",
+      "header_row": 5,
+      "rows": {
+        "P32": 6
+      }
+    },
+    {
+      "path": "orders/M32-r1/switches.xlsx",
+      "role": "switches",
+      "business_revision": "M32-r1",
+      "layout_profile": "mica-switches-v1",
+      "sha256": "8cef22821339140ea0c25e2738b513c4e05b27c9086bfc270cec8c57059340a7",
+      "header_row": 4,
+      "rows": {
+        "S32": 5
+      }
+    },
+    {
+      "path": "orders/M33-r1/trim.xlsx",
+      "role": "trim",
+      "business_revision": "M33-r1",
+      "layout_profile": "mica-trim-v1",
+      "sha256": "1a6538fdefbf82ae71c3b4265a69b94b862c84e64fbfe9feb03633f0042f2fb6",
+      "header_row": 3,
+      "rows": {
+        "T33": 4
+      }
+    },
+    {
+      "path": "orders/M34-r1/trim.xlsx",
+      "role": "trim",
+      "business_revision": "M34-r1",
+      "layout_profile": "mica-trim-v1",
+      "sha256": "240ba665cb70d8e72b668950d2d6c08265740bdce8e2bd1aa663da0397aa3090",
+      "header_row": 3,
+      "rows": {
+        "T34": 4
+      }
+    },
+    {
+      "path": "orders/M35-r1/logic.xlsx",
+      "role": "logic",
+      "business_revision": "M35-r1",
+      "layout_profile": "mica-logic-v1",
+      "sha256": "2df41bfbf35c498ba96735ccc0142527e33a6cd4acff1054d57fb787b913a50e",
+      "header_row": 6,
+      "rows": {
+        "L35": 7
+      }
+    },
+    {
+      "path": "orders/M36-r1/logic.xlsx",
+      "role": "logic",
+      "business_revision": "M36-r1",
+      "layout_profile": "mica-logic-v1",
+      "sha256": "1a288015ad04d2017dd81e765b992b278f1169e9dca0af25cce31a8b3ef2cf45",
+      "header_row": 8,
+      "rows": {
+        "L36": 9
+      }
+    },
+    {
+      "path": "orders/M36-r1/pins.xlsx",
+      "role": "pins",
+      "business_revision": "M36-r1",
+      "layout_profile": "mica-pins-v1",
+      "sha256": "00c8140a4f1b8dec1109a4d2230c75e120ce734a2bdb983ad6109a422b7345e2",
+      "header_row": 3,
+      "rows": {
+        "P36": 4
+      }
+    },
+    {
+      "path": "orders/M36-r1/switches.xlsx",
+      "role": "switches",
+      "business_revision": "M36-r1",
+      "layout_profile": "mica-switches-v1",
+      "sha256": "3fe39826d5c62ffcc8e8c1762302f9964250cb3de3c69003be4055454731bee9",
+      "header_row": 4,
+      "rows": {
+        "S36": 5
+      }
+    },
+    {
+      "path": "orders/M37-r1/switches.xlsx",
+      "role": "switches",
+      "business_revision": "M37-r1",
+      "layout_profile": "mica-switches-v1",
+      "sha256": "95aec1b9d6b047282dda4caae6d4b9aca1d5467624e18fe7ac6943717b5cb959",
+      "header_row": 3,
+      "rows": {
+        "S37a": 4,
+        "S37b": 5
+      }
+    },
+    {
+      "path": "orders/M38-r1/submission.xlsx",
+      "role": "submission",
+      "business_revision": "TRIM-D4",
+      "layout_profile": "mica-submission-v1",
+      "sha256": "54b2a0a93838f22958b1d88c69ea54b6ebe6442b37600a2012537d181c48587c",
+      "order_id": "M38-r1"
+    },
+    {
+      "path": "orders/M38-r1/trim.xlsx",
+      "role": "trim",
+      "business_revision": "M38-r1",
+      "layout_profile": "mica-trim-v1",
+      "sha256": "90aa1e97cf5de3440fce4ed00288487b073526b715ff6fb87a53af0f54875eb1",
+      "header_row": 3,
+      "rows": {
+        "T38": 4
+      }
+    },
+    {
+      "path": "orders/M39-r1/logic.xlsx",
+      "role": "logic",
+      "business_revision": "M39-r1",
+      "layout_profile": "mica-logic-v1",
+      "sha256": "1b6cb2521c4742a6437435322a03fc94c1e077594ff40be4e8feb93b02cdb50f",
+      "header_row": 4,
+      "rows": {
+        "L39": 5
+      }
+    },
+    {
+      "path": "orders/M39-r1/trim.xlsx",
+      "role": "trim",
+      "business_revision": "M39-r1",
+      "layout_profile": "mica-trim-v1",
+      "sha256": "007068c5a1b4a3d658f10f2fc2f5beff06805775ffb16cfcf5c859e576c1e4b4",
+      "header_row": 3,
+      "rows": {
+        "T39": 4
+      }
+    },
+    {
+      "path": "orders/M40-r1/logic.xlsx",
+      "role": "logic",
+      "business_revision": "M40-r1",
+      "layout_profile": "mica-logic-v1",
+      "sha256": "6305190c2760f08491062ee532ee2de7f9f9a62fff9f376e98992a506dcdce45",
+      "header_row": 6,
+      "rows": {
+        "L40": 7
+      }
+    },
+    {
+      "path": "orders/M40-r1/pins.xlsx",
+      "role": "pins",
+      "business_revision": "M40-r1",
+      "layout_profile": "mica-pins-v1",
+      "sha256": "5aa1ef6bf4a6f9060cec583a6b2d923468f309e749d1243bf294bb0e0a6b5e95",
+      "header_row": 3,
+      "rows": {
+        "P40": 4
+      }
+    },
+    {
+      "path": "orders/M41-r1/logic.xlsx",
+      "role": "logic",
+      "business_revision": "M41-r1",
+      "layout_profile": "mica-logic-v1",
+      "sha256": "f451bd09234220ffddfd5b74fbfe281b269ec5548fba146af2506bc2a21bbc5f",
+      "header_row": 3,
+      "rows": {
+        "L41a": 4,
+        "L41b": 5
+      }
+    },
+    {
+      "path": "orders/M42-r2/logic.xlsx",
+      "role": "logic",
+      "business_revision": "M42-r2",
+      "layout_profile": "mica-logic-v1",
+      "sha256": "10223c4ce5d11b49701e22f503b2cd2567bbc76873ef4a61efdf7a2eee62b402",
+      "header_row": 5,
+      "rows": {
+        "L42": 6
+      }
+    },
+    {
+      "path": "orders/M42-r2/parent-decision.xlsx",
+      "role": "parent-decision",
+      "business_revision": "CALL-D1",
+      "layout_profile": "mica-parent-decision-v1",
+      "sha256": "dd972d1d3680d31a108745fb414fceeff6eff6a832c32a08ee4a98fc54dffcfa",
+      "order_id": "M42-r2",
+      "scope": "HISTORICAL_REFERENCE"
+    }
+  ]
+}
