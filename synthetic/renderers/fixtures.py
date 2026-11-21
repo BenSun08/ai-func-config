@@ -4,10 +4,10 @@ import argparse
 import hashlib
 import json
 import re
+import stat
 from collections import defaultdict
-from filecmp import cmp
 from io import BytesIO
-from itertools import groupby
+from itertools import chain, groupby
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from xml.etree.ElementTree import canonicalize
@@ -30,7 +30,10 @@ def native_value(value):
 
 
 def write_cell(sheet, row, column, value):
-    cell = sheet.cell(row, column, native_value(value))
+    value = native_value(value)
+    if isinstance(value, str) and len(value) > 32767:
+        raise ValueError(f"{sheet.title} row {row} column {column} exceeds 32767 characters")
+    cell = sheet.cell(row, column, value)
     if isinstance(cell.value, str):
         cell.data_type = "s"  # Source text beginning with '=' is still literal evidence.
     cell.alignment = Alignment(vertical="top", wrap_text=True)
@@ -287,6 +290,7 @@ def save_native(document, path):
 
 def build(directory, worlds):
     entries = []
+    order_folders = set()
 
     def emit(document, folder, role, revision, metadata=None):
         suffix = ".xlsx" if isinstance(document, Workbook) else ".docx"
@@ -318,6 +322,11 @@ def build(directory, worlds):
                 emit(render(world), "knowledge", role, world["knowledge_id"])
         # The documented model-free demo opens orders/E01. Its business revision is M31-r1.
         folder = Path("orders") / ("E01" if order_id == "M31-r1" else order_id)
+        folder_key = folder.name.casefold()
+        if folder_key in order_folders:
+            raise ValueError(f"duplicate native order directory: {folder}")
+        order_folders.add(folder_key)
+        first_order_entry = len(entries)
         order = world["orders"][order_id]
         groups = defaultdict(dict)
         for row_id, row in order["rows"].items():
@@ -344,6 +353,8 @@ def build(directory, worlds):
                 parent["revision_id"],
                 {"order_id": order_id, "scope": "HISTORICAL_REFERENCE"},
             )
+        if len(entries) == first_order_entry:
+            raise ValueError(f"no native sources for order: {order_id}")
     manifest = {
         "knowledge_id": world["knowledge_id"],
         "world_sha256": world_hash,
@@ -352,6 +363,42 @@ def build(directory, worlds):
     (directory / "manifest.json").write_text(
         json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
     )
+
+
+def _inventory(directory):
+    versions = {}
+    for path in chain((directory,), directory.rglob("*")):
+        info = path.lstat()
+        versions[path.relative_to(directory)] = (
+            info.st_mode,
+            info.st_dev,
+            info.st_ino,
+            info.st_size,
+            info.st_mtime_ns,
+            info.st_ctime_ns,
+        )
+    return versions
+
+
+def _verify_existing(staged, output):
+    # Bracket all content reads with two inventories. A per-file check alone can
+    # combine successes from different versions of a directory during a retry.
+    before = _inventory(output)
+    expected = {p.relative_to(staged) for p in staged.rglob("*")} | {Path(".")}
+    if expected != before.keys():
+        raise ValueError(f"output differs from the authored bundle: {output}")
+    for relative, (mode, *_) in before.items():
+        source = staged / relative
+        if source.is_dir() and stat.S_ISDIR(mode):
+            continue
+        if not (
+            source.is_file()
+            and stat.S_ISREG(mode)
+            and source.read_bytes() == (output / relative).read_bytes()
+        ):
+            raise ValueError(f"output differs from the authored bundle: {output / relative}")
+    if _inventory(output) != before:
+        raise ValueError(f"output changed during comparison: {output}")
 
 
 def render(output, worlds=WORLDS):
@@ -367,16 +414,7 @@ def render(output, worlds=WORLDS):
         except OSError:
             if not output.is_dir():
                 raise
-            # Compare against freshly generated inputs. An edited or mixed directory is left intact.
-            expected = {p.relative_to(staged) for p in staged.rglob("*")}
-            actual = {p.relative_to(output) for p in output.rglob("*")}
-            if actual != expected or any(
-                (output / p).is_symlink()
-                or ((staged / p).is_dir() != (output / p).is_dir())
-                or ((staged / p).is_file() and not cmp(staged / p, output / p, shallow=False))
-                for p in expected
-            ):
-                raise ValueError(f"output differs from the authored bundle: {output}") from None
+            _verify_existing(staged, output)
     return output / "manifest.json"
 
 

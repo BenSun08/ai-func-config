@@ -2,11 +2,53 @@
 
 Design: Bus_Config_AI_Detailed_Design_EN_v3.md
 Plan: Bus_Config_AI_Implementation_Plan_EN_v1.md
-Current milestone: M0 (local gate passed)
-Current subtask: T02.3
-Status: verified locally on `codex/t02-3-native-fixtures`
-Verified date: 2026-11-20 (Asia/Shanghai)
+Current milestone: M0 (local repair gate passed)
+Current subtask: T01–T02 milestone review repairs
+Status: all 15 reproduced findings covered on `codex/m0-gate-repairs`
+Verified date: 2026-11-22 (Asia/Shanghai)
 Next subtask: T03.1
+
+## M0 review repairs
+
+The review reopened the [foundation gate](Bus_Config_AI_Implementation_Plan_EN_v1.md#8-stage-gates-and-verification-commands)
+after the original 137 tests passed. A stale order context survived JSON reload,
+and the acceptance suite admitted bad fixture variants even after their digests
+were updated. The repair branch starts at clean `main` commit `2d5dfeb`.
+
+| Files changed | Repair and observable result |
+| --- | --- |
+| `src/busconfig/domain/{contracts,invariants}.py`, `tests/unit/test_identity_contracts.py`, `docs/contracts.md` | Constructors and JSON reload reject facts or requirements from another order. A stable configuration has one owner across its revisions. A generated source ID must match its document revision and locator. Assertions, facts and attributes distinguish false from zero in sets, including nested values. Model assertions require a span for each cited block. Nonempty requirement and link proposals require spans. |
+| `synthetic/inputs.py`, `evals/types.py` | Reject explicit answer headers and duplicate YAML keys before rendering. A second case cannot move an order into a different family by relabelling it. Mutating a yielded catalog cannot affect the next order. |
+| `synthetic/renderers/fixtures.py` | Reject two orders sharing one directory, a pinned order without any native sources, and text that Excel would truncate. An existing-pack retry compares real bytes and checks for file or directory changes across the entire read. |
+| `tests/acceptance/test_anchor_integrity.py`, `docs/synthetic-data.md`, `docs/progress.md` | Cross-check native order coverage against the input manifest. Read field/value tables under their DOCX owners and revisions. Check the typed E08 bench samples against the hand-reviewed pulse, count, lamp and ACK timeline. Record the fixture and gate contracts. |
+
+### Commands and evidence
+
+Commands below used `UV_CACHE_DIR=/tmp/busconfig-uv-cache` for uv. The authored
+world, 12 evaluator references, family assignments and committed native files
+have a clean diff against the base.
+
+| Command or experiment | Observed result |
+| --- | --- |
+| `uv run pytest -q` before edits | 137 passed. |
+| `uv run pytest tests/unit/test_identity_contracts.py -q -k 'stale_members or one_owner or still_identify or distinct_in_sets or each_cited_block' --tb=line` | All 16 new checks failed against the old contracts. Invalid records validated and false compared equal to zero. After the first repair, all 111 then-current unit tests passed. |
+| `uv run pytest tests/unit/test_identity_contracts.py -k 'readable_suffix or omit_its_spans' -q --tb=line` | Four failures exposed an overbroad generated-ID check and spanless requirement/link proposals. All four passed after correction. |
+| `uv run pytest tests/acceptance/test_anchor_integrity.py -k 'correct_answer_header or relabelled or raw_duplicate or share_mutable or own_native or never_truncates or changed_during_comparison' -q --tb=line` | Eight input, split and renderer checks failed on the intended behaviors. The first race test used different-sized edits and stopped before the byte reads. Repeating `-k changed_during_comparison` with same-size edits reproduced the false success on a pack that was inconsistent throughout the comparison. |
+| `uv run pytest tests/acceptance/test_anchor_integrity.py -k raw_duplicate -q --tb=line`, then `-k correct_answer_header` | A duplicate inside a merged YAML mapping and two further explicit answer labels initially passed through. Final tests reject them and continue to accept the engineering header “Expected input voltage”. |
+| In separate temporary copies, ran `python -m pytest tests/acceptance/test_anchor_integrity.py -k e08_native_trace -q --tb=short` and the same command with `-k native_revision_fields` | Changing only the 72 ms lamp sample to on failed at that sample. Changing only the DOCX writer to emit DIAL-B for LEVEL-A.1 failed against DIAL-A. Both tests passed on the authored inputs and renderer. |
+| `uv run pytest tests/unit/test_selection_contracts.py tests/unit/test_settings.py tests/unit/test_identity_contracts.py -q` and `uv run pytest tests/acceptance/test_anchor_integrity.py -q` | 115 unit tests and 56 anchor acceptance tests passed. |
+| `uv run pytest -q` and final `uv run pytest tests/unit tests/acceptance/test_anchor_integrity.py -q` | 171 passed in each run, with zero skips. Integration tests begin at T03. |
+| `uv run python -m synthetic.renderers.fixtures --suite anchors --output runtime/anchors`, repeated with a fresh temporary destination, then `diff -qr` against `tests/fixtures/anchors` | Both the retry and fresh render matched the committed pack. An independent SHA-256 read verified all 23 manifest entries. |
+| `soffice --headless --convert-to pdf` for M32-r1 pins and the function library, followed by `pdftoppm` first-page inspection | Calc showed DIAL-A under current, DIAL-B under historical and spare input under planned. Writer showed F-LEVEL → LEVEL-A.1 with DIAL-A, momentary and 0/2/5/0. Font-cache warnings did not prevent either page from rendering. |
+| `uv run busconfig doctor`, `uv run python -c 'import busconfig'`, `uv build --offline --out-dir /tmp/busconfig-m0-verification.MO6RCd/dist` | Doctor reported disabled model mode and writable data. Import and both builds passed. Archive inspection found no fixture or evaluator paths in the 15 wheel members or 16 source distribution members. |
+| `uv run ruff check .`, `uv run ruff format --check src synthetic evals tests`, `git diff --check` | Passed. Reviewed the scoped diff locally. |
+
+**Handoff.** All reproduced M0 findings have regression coverage. The local M0
+gate passes. Four public development families cover the authored anchors.
+Independent holdout families, parser-level source lookup and database concurrency
+remain later milestone work. Cumulative M0 focused hours were not recorded.
+Next is **T03.1**, extracting merged headers and multiline cells with native
+provenance while preserving current, historical and planned column scopes.
 
 ## T02.3 — Native anchor fixtures
 
@@ -56,9 +98,9 @@ the current pin and the F-LEVEL heading with its four revisions. An additional
 Numbers import displayed a blank sheet and exposed no table to the UI check.
 The Calc and Writer page inspections supplied the required viewer evidence.
 
-**M0 gate and handoff.** The T01 contract tests, T02 anchor integrity and native
-fixture gate passed locally. Self-reviewed the scoped diff. No implementation
-blocker. Reproducibility evidence covers the pinned local tools and the native
+**Original T02.3 handoff.** The T01 contract tests, T02 anchor integrity and native
+fixture gate passed locally at that revision. The subsequent M0 review and repair
+record above supersedes its sign-off. Reproducibility evidence covers the pinned local tools and the native
 content checked by the tests. The independent families for validation and test,
 parser behavior and matching metrics belong to later work. Cumulative focused
 hours for M0 were not measured. Next is **T03.1**, extraction of merged headers,

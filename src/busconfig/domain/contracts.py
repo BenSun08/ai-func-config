@@ -14,7 +14,11 @@ from pydantic import (
 )
 
 from busconfig.domain.immutable import FrozenMap, immutable_sequences
-from busconfig.domain.serialization import canonical_hash, reject_duplicate_json_keys
+from busconfig.domain.serialization import (
+    canonical_hash,
+    canonical_json,
+    reject_duplicate_json_keys,
+)
 
 # Opaque IDs are validated, never split, trimmed or manufactured from device scope.
 Identifier = Annotated[str, StringConstraints(strict=True, pattern=r"^[^\s,]+$")]
@@ -100,7 +104,19 @@ class FunctionInstance(DomainModel):
     function_id: FunctionId | None = None
 
 
-class SourceAssertion(DomainModel):
+class _TypedValueRecord(DomainModel):
+    """Use the schema's typed JSON identity even inside nested values (false differs from 0)."""
+
+    def __eq__(self, other):
+        if type(self) is not type(other):
+            return NotImplemented
+        return canonical_json(self) == canonical_json(other)
+
+    def __hash__(self):
+        return hash((type(self), canonical_json(self)))
+
+
+class SourceAssertion(_TypedValueRecord):
     """Design §8.1 assertion fields with explicit §8.2 value state.
 
     Block IDs retain provenance without substituting text for source identity.
@@ -195,7 +211,7 @@ class SourceBlock(VersionedModel):
     formatting: FrozenMap[str, FactValue] = Field(default_factory=lambda: FrozenMap({}))
 
 
-class ResolvedFact(DomainModel):
+class ResolvedFact(_TypedValueRecord):
     fact_id: Identifier
     order_snapshot_id: OrderSnapshotId
     subject_id: Identifier
@@ -443,7 +459,7 @@ class OrderSnapshot(VersionedModel):
         return unique_sorted(value, "document_id")
 
 
-class AttributeValue(DomainModel):
+class AttributeValue(_TypedValueRecord):
     value_state: ValueState
     value: FactValue = None
     evidence_ids: tuple[Identifier, ...]
@@ -512,8 +528,11 @@ class KnowledgeSnapshot(VersionedModel):
 
     @model_validator(mode="after")
     def owners_in_catalog(self) -> Self:
-        if any(config.function_id not in self.function_ids for config in self.config_revisions):
-            raise ValueError("CONFIG_FUNCTION_MISMATCH")
+        owners = {}
+        for config in self.config_revisions:
+            owner = owners.setdefault(config.configuration_id, config.function_id)
+            if owner != config.function_id or owner not in self.function_ids:
+                raise ValueError("CONFIG_FUNCTION_MISMATCH")
         return self
 
 
@@ -539,6 +558,13 @@ class OrderInterpretation(VersionedModel):
     instances: tuple[FunctionInstance, ...]
     unresolved_items: tuple[str, ...]
     issues: tuple[Issue, ...]
+
+    @model_validator(mode="after")
+    def evidence_scope(self) -> Self:
+        for item in (*self.facts, *self.requirements):
+            if item.order_snapshot_id != self.order_snapshot_id:
+                raise ValueError("Evidence belongs to another order snapshot")
+        return self
 
 
 class LinkedOrder(OrderInterpretation):
@@ -663,6 +689,12 @@ class OrderExtractionProposal(VersionedModel):
             raise ValueError("Model assertions must remain unreviewed proposals")
         if any(requirement.extraction_status != "PROPOSED" for requirement in self.requirements):
             raise ValueError("Model requirements must remain proposals")
+        spanned = {span.block_id for span in self.source_spans}
+        if self.requirements and not spanned:
+            raise ValueError("Model requirements require source spans")
+        for assertion in self.assertions:
+            if not spanned.issuperset(assertion.source_block_ids):
+                raise ValueError("Model assertion requires a source span for each cited block")
         return self
 
 
@@ -675,6 +707,8 @@ class LinkProposalSet(VersionedModel):
 
     @model_validator(mode="after")
     def links_are_unreviewed(self) -> Self:
+        if (self.proposed_links or self.alternatives) and not self.source_spans:
+            raise ValueError("Model links require source spans")
         if any(
             link.review_state != "UNREVIEWED" for link in (*self.proposed_links, *self.alternatives)
         ):

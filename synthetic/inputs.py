@@ -1,6 +1,8 @@
 """Read one order and its catalog from the authored input-only fixture directory."""
 
 import hashlib
+import re
+from copy import deepcopy
 from pathlib import Path, PurePosixPath
 from typing import Annotated, Literal
 
@@ -8,6 +10,26 @@ import yaml
 from pydantic import Field
 
 from busconfig.domain.contracts import DomainModel, KnowledgeSnapshotId, OrderSnapshotId
+
+
+class _WorldLoader(yaml.SafeLoader):
+    def compose_mapping_node(self, anchor):
+        # Inspect each authored mapping before SafeLoader flattens YAML merges.
+        node = super().compose_mapping_node(anchor)
+        seen = set()
+        for key, _ in node.value:
+            if not isinstance(key, yaml.ScalarNode):
+                raise ValueError(f"expected a scalar fixture key at {key.start_mark}")
+            if key.tag == "tag:yaml.org,2002:merge":
+                name = ("<<",)  # Distinct from a quoted literal "<<" field.
+            elif key.tag == "tag:yaml.org,2002:value":
+                name = "="
+            else:
+                name = self.construct_object(key)
+            if name in seen:
+                raise ValueError(f"duplicate YAML mapping key {key.value!r} at {key.start_mark}")
+            seen.add(name)
+        return node
 
 
 class _InputManifest(DomainModel):
@@ -43,7 +65,7 @@ _REFERENCE_FIELDS = {
 
 
 def _check_label(name: str) -> None:
-    label = name.strip().casefold().replace("-", "_").replace(" ", "_")
+    label = re.sub(r"[\W_]+", "_", name.casefold()).strip("_")
     # Engineering headers may legitimately describe expected use, voltage, etc.
     answer_prefixes = (
         "answer_",
@@ -59,7 +81,15 @@ def _check_label(name: str) -> None:
         "expected_score",
         "expected_selection",
     )
-    if label in _REFERENCE_FIELDS or label.startswith(answer_prefixes):
+    if (
+        label in _REFERENCE_FIELDS
+        or label.startswith(answer_prefixes)
+        or re.search(
+            r"(?:^|_)(?:(?:reference|correct)_answers?"
+            r"|correct_(?:choice|configuration|selection)s?)(?:_|$)",
+            label,
+        )
+    ):
         raise ValueError(f"evaluation field in input: {name}")
 
 
@@ -90,7 +120,7 @@ def _read_world(bundle_dir: Path):
     source = (bundle_dir / manifest.world_file).read_bytes()
     if hashlib.sha256(source).hexdigest() != manifest.sha256:
         raise ValueError("fixture world digest differs from manifest")
-    world = yaml.safe_load(source)
+    world = yaml.load(source, Loader=_WorldLoader)
     _check_reference_fields(world)
     if not isinstance(world, dict) or world.get("knowledge_id") != manifest.knowledge_id:
         raise ValueError("fixture knowledge snapshot differs from manifest")
@@ -116,4 +146,4 @@ def iter_order_inputs(bundle_dir: Path):
     """Render every order from the same verified source bytes and inventory."""
     manifest, world = _read_world(bundle_dir)
     for order_id in manifest.order_ids:
-        yield manifest.sha256, order_id, _scope_order(world, order_id)
+        yield manifest.sha256, order_id, deepcopy(_scope_order(world, order_id))
