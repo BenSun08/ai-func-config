@@ -103,9 +103,12 @@ class _FamilySplits(DomainModel):
                 by_family[family] = split
         if set(by_family) != {case.family_id for case in suite.cases}:
             raise ValueError("split manifest differs from anchor families")
+        family_by_order = {}
         for case in suite.cases:
             if by_family[case.family_id] != case.split_id:
                 raise ValueError(f"case disagrees with its family split: {case.case_id}")
+            if family_by_order.setdefault(case.order_id, case.family_id) != case.family_id:
+                raise ValueError(f"order assigned to more than one family: {case.order_id}")
 
 
 def build_anchor_suite(*, evaluation_dir: Path = Path(__file__).parent) -> AnchorSuite:

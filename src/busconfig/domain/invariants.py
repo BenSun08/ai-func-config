@@ -1,5 +1,7 @@
 """Domain invariants independent of model responses and planning."""
 
+import re
+
 from pydantic import TypeAdapter
 
 from busconfig.domain.contracts import (
@@ -86,9 +88,11 @@ def validate_source_ids(
         seen.add(identity)
     by_id = {document.document_id: document for document in documents}
     for block in blocks:
-        if (
-            block.document_id not in by_id
-            or by_id[block.document_id].byte_hash != block.document_hash
+        document = by_id.get(block.document_id)
+        if document is None or document.byte_hash != block.document_hash:
+            raise SourceIdentityError("SOURCE_REFERENCE_MISMATCH", block.block_id)
+        if re.fullmatch(r"SRC-[0-9a-f]{64}", block.block_id) and block.block_id != source_block_id(
+            document, block.locator
         ):
             raise SourceIdentityError("SOURCE_REFERENCE_MISMATCH", block.block_id)
     block_ids = {block.block_id for block in blocks}

@@ -41,10 +41,11 @@ pin_cells = source["orders"]["M32-r1"]["rows"]["P32"]["cells"]
 ```
 
 The directory contains exactly `manifest.json` and `core.yaml`. The loader
-rejects extra files, symlinks, digest or inventory mismatches, evaluator
-annotations and gold paths. When editing engineering inputs, review the source
+rejects extra files, symlinks, digest or inventory mismatches, duplicate YAML
+keys, evaluator annotations and gold paths. When editing engineering inputs, review the source
 change before repinning its digest. The renderer iterates over the scoped inputs
-from a single verified read. The evaluator, tests and this answer-bearing guide
+from a single verified read and gives each order its own copy of the catalog.
+The evaluator, tests and this answer-bearing guide
 live outside the application distribution. T16 owns the application image and
 its build-context exclusions.
 
@@ -60,6 +61,11 @@ The [canonical pack](../tests/fixtures/anchors/manifest.json) contains 22 workbo
 and one Word library. The command writes the same engineering material to the
 requested directory. An identical existing pack can be reused. If a pack was
 edited or contains other files, render to a fresh directory to preserve those edits.
+On retry the renderer compares the full directory and file bytes and checks
+file identities and timestamps before and after the comparison. For subsequent
+reads the manifest supplies the hashes. Each pinned order needs at least one
+native source and its own directory. Oversize Excel cell text stops the render
+before publication so a trailing condition or exception cannot disappear.
 The manifest pins each file's SHA-256, role, business revision and layout profile.
 For an order table it also maps authored row IDs to native rows and locates the
 column headers. The scope band sits immediately above those headers.
@@ -81,7 +87,8 @@ current change request. Keep answer lookups in the offline evaluator.
 
 The offline [split manifest](../evals/splits.json) assigns whole families to
 partitions. The suite loader checks every case's declared split against that
-assignment. All four current families are public development examples. The
+assignment. Reusing a pinned order under a new family ID fails validation.
+All four current families are public development examples. The
 validation and test partitions are empty until independent families are authored.
 Add a paraphrase or related order to its existing family.
 

@@ -54,7 +54,9 @@ an optional catalog function reference; they never add selection keys.
   component, so moving the same source does not manufacture different evidence.
 - `validate_source_ids(documents, blocks, assertions)` rejects every reused ID
   across these inputs, even identical repeated rows, before constructing a lookup.
-  It also verifies block/document hashes and assertion/block references. Importers
+  It also verifies block/document hashes and assertion/block references. For a
+  generated ID (`SRC-` and 64 lowercase hex digits), it recomputes the ID from
+  the declared document and locator. Opaque source IDs retain the reference checks. Importers
   must include previously registered records when checking reuse across imports;
   this function is not a durable global ID registry.
 
@@ -63,7 +65,8 @@ an optional catalog function reference; they never add selection keys.
 Facts use exactly `KNOWN`, `MISSING`, `NOT_APPLICABLE`, and `CONFLICT`. `KNOWN`
 requires a non-null value. Unresolved/inapplicable states cannot carry a resolved
 value. Booleans, integers, finite floats, strings and nested structures retain
-their types; false and zero remain distinct in serialization and hashes.
+their types. Assertions, resolved facts and attribute values also preserve those
+types in equality and set membership, including inside nested values.
 
 Raw source text retains the difference between absent text, an observed empty
 string and `/`. These contracts do not infer a value state by inspecting arbitrary
@@ -77,6 +80,15 @@ origin and review status. The default origin is `UNSPECIFIED`, not an invented
 native/human origin. `ResolvedFact` pins the order snapshot, contributing assertion
 IDs, resolution method and review state. Configuration `AttributeValue` records
 also require explicit value state, evidence IDs and review status.
+
+An interpretation, linked order or evidence context accepts facts and requirements
+only for its pinned order snapshot. Within a knowledge snapshot, all revisions
+of a stable configuration ID must belong to the same catalog function.
+
+Every block cited by a proposed assertion needs a supporting span. A proposal
+that contains requirements or links (including alternative links) also needs
+source spans. Checking those spans against actual source text requires the
+producer's source lookup.
 
 `Issue` contains ID, code, severity, scope, evidence IDs, resolution target and a
 message. The initial conservative policy is fixed: `METADATA_NOTE` is informational;

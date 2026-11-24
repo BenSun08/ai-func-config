@@ -547,3 +547,202 @@ def test_configuration_attributes_require_explicit_value_states():
             source_block_ids=("DEMO-B1",),
             attributes={"enabled": False},
         )
+
+
+@pytest.mark.parametrize("stale_field", ["facts", "requirements"])
+@pytest.mark.parametrize("wire", [False, True], ids=["constructor", "json"])
+def test_order_evidence_rejects_stale_members(stale_field, wire):
+    from busconfig.domain.contracts import OrderEvidenceContext, Requirement
+
+    current = "M42-r2"
+    fact = revision().payload.facts[0].model_copy(update={"order_snapshot_id": current})
+    requirement = Requirement(
+        requirement_id="REQ-LAMP",
+        order_snapshot_id=current,
+        scope="lamp",
+        condition="after ACK",
+        action="clear",
+        timing="12 ms",
+        source_assertion_ids=("DEMO-A1",),
+        extraction_status="CONFIRMED",
+    )
+    context = OrderEvidenceContext(
+        order_snapshot_id=current,
+        facts=(fact,),
+        requirements=(requirement,),
+        instances=(),
+        unresolved_items=(),
+        issues=(),
+        links=(),
+        knowledge_snapshot_id="MICA-K1",
+        function_id="F-LAMP",
+        source_blocks=(),
+        unanswered_questions=(),
+    )
+    assert OrderEvidenceContext.model_validate_json(context.model_dump_json()) == context
+    stale = getattr(context, stale_field)[0].model_copy(update={"order_snapshot_id": "M42-r1"})
+    with pytest.raises(ValidationError, match="order snapshot"):
+        if wire:
+            payload = json.loads(context.model_dump_json())
+            payload[stale_field] = [stale.model_dump(mode="json")]
+            OrderEvidenceContext.model_validate_json(json.dumps(payload))
+        else:
+            OrderEvidenceContext(**(context.model_dump() | {stale_field: (stale,)}))
+
+
+def test_knowledge_snapshot_keeps_one_owner_across_revisions():
+    from busconfig.domain.contracts import ConfigRevision, KnowledgeSnapshot
+
+    first = ConfigRevision(
+        config_revision_id="INK.1",
+        revision="1",
+        configuration_id="INK",
+        function_id="F-TAG",
+        behavior="illuminate",
+        applicability="powered",
+        attributes={},
+        source_block_ids=("B1",),
+    )
+    second = first.model_copy(update={"config_revision_id": "INK.2", "revision": "2"})
+    catalog = KnowledgeSnapshot(
+        snapshot_id="K1",
+        function_ids=("F-TAG", "F-LAMP"),
+        config_revisions=(first, second),
+        attribute_revision_ids=(),
+        rule_revision_ids=(),
+        composition_template_revision_ids=(),
+    )
+    with pytest.raises(ValidationError, match="CONFIG_FUNCTION_MISMATCH"):
+        catalog.model_copy(
+            update={
+                "config_revisions": (first, second.model_copy(update={"function_id": "F-LAMP"}))
+            }
+        )
+
+
+@pytest.mark.parametrize("change", ["locator", "business_revision"])
+def test_generated_source_id_must_still_identify_its_source(change):
+    from busconfig.domain.contracts import SourceBlock, XlsxLocator
+    from busconfig.domain.invariants import source_block_id, validate_source_ids
+
+    doc = document()
+    locator = XlsxLocator(sheet="pins", cells=("B6",))
+    block = SourceBlock(
+        block_id=source_block_id(doc, locator),
+        document_id=doc.document_id,
+        document_hash=doc.byte_hash,
+        locator=locator,
+        raw_text="DIAL-A",
+        effective_status="CURRENT",
+    )
+    if change == "locator":
+        block = block.model_copy(update={"locator": XlsxLocator(sheet="pins", cells=("D6",))})
+    else:
+        doc = doc.model_copy(update={"business_revision": "R2"})
+    with pytest.raises(ValueError, match="SOURCE_REFERENCE_MISMATCH"):
+        validate_source_ids([doc], [block])
+
+
+@pytest.mark.parametrize("record", ["assertion", "fact", "attribute"])
+@pytest.mark.parametrize("left,right", [(False, 0), ({"steps": [False]}, {"steps": [0]})])
+def test_typed_values_remain_distinct_in_sets(record, left, right):
+    from busconfig.domain.contracts import AttributeValue
+
+    base = {
+        "assertion": source_assertion(False),
+        "fact": revision(value=False).payload.facts[0],
+        "attribute": AttributeValue(
+            value_state=ValueState.KNOWN,
+            value=False,
+            evidence_ids=("B1",),
+            review_state="CONFIRMED",
+        ),
+    }[record]
+    first, second = (base.model_copy(update={"value": value}) for value in (left, right))
+    assert first != second
+    assert len({first, second, type(first).model_validate_json(first.model_dump_json())}) == 2
+
+
+@pytest.mark.parametrize("cited", [(), ("other",), ("DEMO-B1", "other")])
+def test_proposed_assertion_has_a_span_for_each_cited_block(cited):
+    from busconfig.domain.contracts import OrderExtractionProposal, SourceSpan, TextSpan
+
+    claim = source_assertion(False).model_copy(
+        update={"origin": "MODEL_PROPOSAL", "source_block_ids": ("DEMO-B1", "B2")}
+    )
+
+    def spans(ids):
+        return tuple(SourceSpan(block_id=id_, text_span=TextSpan(start=0, end=4)) for id_ in ids)
+
+    valid = OrderExtractionProposal(
+        assertions=(claim,),
+        requirements=(),
+        alternatives=(),
+        issues=(),
+        source_spans=spans(("DEMO-B1", "B2")),
+    )
+    with pytest.raises(ValidationError, match="span"):
+        valid.model_copy(update={"source_spans": spans(cited)})
+
+
+def test_opaque_source_id_with_a_readable_suffix_keeps_its_identity():
+    from busconfig.domain.contracts import SourceBlock, XlsxLocator
+    from busconfig.domain.invariants import validate_source_ids
+
+    doc = document()
+    block = SourceBlock(
+        block_id="SRC-pins-B6",
+        document_id=doc.document_id,
+        document_hash=doc.byte_hash,
+        locator=XlsxLocator(sheet="pins", cells=("B6",)),
+        raw_text="DIAL-A",
+        effective_status="CURRENT",
+    )
+    validate_source_ids([doc], [block])
+
+
+@pytest.mark.parametrize("claim", ["requirement", "proposed_link", "alternative_link"])
+def test_nonempty_model_proposal_cannot_omit_its_spans(claim):
+    from busconfig.domain.contracts import (
+        EntityLink,
+        LinkProposalSet,
+        OrderExtractionProposal,
+        Requirement,
+        SourceSpan,
+        TextSpan,
+    )
+
+    common = dict(
+        issues=(), source_spans=(SourceSpan(block_id="B1", text_span=TextSpan(start=0, end=4)),)
+    )
+    if claim == "requirement":
+        req = Requirement(
+            requirement_id="R1",
+            order_snapshot_id="M42-r2",
+            scope="lamp",
+            condition="ACK",
+            action="clear",
+            timing="12 ms",
+            source_assertion_ids=("A1",),
+            extraction_status="PROPOSED",
+        )
+        proposal = OrderExtractionProposal(
+            **common, assertions=(), requirements=(req,), alternatives=()
+        )
+    else:
+        link = EntityLink(
+            link_id="L1",
+            source_entity_id="E1",
+            target_entity_id="E2",
+            relationship="feeds",
+            evidence_ids=("B1",),
+            method="model",
+            review_state="UNREVIEWED",
+        )
+        proposal = LinkProposalSet(
+            **common,
+            proposed_links=(link,) if claim == "proposed_link" else (),
+            alternatives=(link,) if claim == "alternative_link" else (),
+        )
+    with pytest.raises(ValidationError, match="span"):
+        proposal.model_copy(update={"source_spans": ()})

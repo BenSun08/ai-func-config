@@ -95,6 +95,12 @@ def test_fixture_manifest_hashes(tmp_path, world, native_bundle):
         entries = {entry["path"]: entry for entry in manifest["files"]}
         assert len(entries) == len(manifest["files"])
         assert entries.keys() == expected_paths
+        order_sources = {
+            entry.get("order_id", entry["business_revision"])
+            for path, entry in entries.items()
+            if path.startswith("orders/")
+        }
+        assert order_sources == set(json.loads(INPUT_MANIFEST.read_bytes())["order_ids"])
         assert {
             p.relative_to(destination).as_posix() for p in destination.rglob("*") if p.is_file()
         } == expected_paths | {"manifest.json"}
@@ -426,7 +432,7 @@ def test_offline_case_cannot_direct_application_to_gold(tmp_path):
 def distinct_keys(pairs):
     result = {}
     for key, value in pairs:
-        assert key not in result, f"repeated gold key {key!r}"
+        assert key not in result, f"repeated key {key!r}"
         result[key] = value
     return result
 
@@ -628,3 +634,181 @@ def test_positive_score_cannot_pay_for_a_failed_condition(cases, world):
         )
         assert probe.failed_conditions[revision]
     assert dict(probe.scores) == {"GLINT.1": 2, "SHADE.1": 0}
+
+
+@pytest.mark.parametrize("label", ["Correct answer", "Reference answer", "Correct configuration"])
+def test_correct_answer_header_cannot_reach_native_inputs(input_dir, world, tmp_path, label):
+    world["tables"]["logic"]["D"] = {"header": label, "scope": "CURRENT_ORDER"}
+    world["orders"]["M31-r1"]["rows"]["L31"]["cells"]["D"] = "LEVEL-A.1"
+    repin_world(input_dir, world)
+    destination = tmp_path / "native"
+    with pytest.raises(ValueError, match="evaluation field"):
+        render(destination, input_dir)
+    assert not destination.exists()
+
+
+def test_pinned_order_cannot_be_relabelled_into_a_holdout_split(tmp_path):
+    evaluation = shutil.copytree(ROOT / "evals", tmp_path / "evals")
+    answers = json.loads(GOLD.read_bytes())
+    original = next(case for case in answers["cases"] if case["case_id"] == "E01")
+    answers["cases"].append(
+        original | {"case_id": "Mica-copy", "family_id": "renamed-shelf", "split_id": "test"}
+    )
+    partitions = json.loads(SPLITS.read_bytes())
+    partitions["test"].append("renamed-shelf")
+    (evaluation / "gold/anchors.json").write_text(json.dumps(answers))
+    (evaluation / "splits.json").write_text(json.dumps(partitions))
+    with pytest.raises(ValueError, match="family|split"):
+        build_anchor_suite(evaluation_dir=evaluation)
+
+
+@pytest.mark.parametrize(
+    "original,repeated",
+    [
+        ("B: DIAL-A, C: Reed collar", "B: DIAL-B, B: DIAL-A, C: Reed collar"),
+        ("B: DIAL-A, C: Reed collar", "<<: {B: DIAL-B, B: DIAL-A}, C: Reed collar"),
+        ("      P32: {table:", "      P32: {}\n      P32: {table:"),
+    ],
+)
+def test_raw_duplicate_yaml_key_rejected_before_render(input_dir, tmp_path, original, repeated):
+    source = input_dir / "core.yaml"
+    text = source.read_text()
+    assert text.count(original) == 1
+    source.write_text(text.replace(original, repeated))
+    manifest = input_dir / "manifest.json"
+    manifest.write_text(
+        json.dumps(
+            json.loads(manifest.read_bytes())
+            | {"sha256": hashlib.sha256(source.read_bytes()).hexdigest()}
+        )
+    )
+    destination = tmp_path / "out"
+    with pytest.raises(ValueError, match="duplicate"):
+        render(destination, input_dir)
+    assert not destination.exists()
+
+
+def test_scoped_orders_do_not_share_mutable_catalog_values(input_dir):
+    from synthetic.inputs import iter_order_inputs
+
+    orders = iter_order_inputs(input_dir)
+    digest, _, first = next(orders)
+    first["functions"]["F-TAG"]["revisions"]["INK.1"]["socket"] = "locally-edited"
+    next_digest, _, second = next(orders)
+    assert next_digest == digest
+    assert second["functions"]["F-TAG"]["revisions"]["INK.1"]["socket"] == "slate"
+
+
+@pytest.mark.parametrize("extra_id", ["E01", "M43-r1"])
+def test_each_pinned_order_requires_its_own_native_sources(input_dir, world, tmp_path, extra_id):
+    # A trim-only order would otherwise fit alongside the M31 logic book in orders/E01.
+    world["orders"][extra_id] = world["orders"]["M33-r1"] if extra_id == "E01" else {"rows": {}}
+    repin_world(input_dir, world)
+    manifest = input_dir / "manifest.json"
+    data = json.loads(manifest.read_bytes())
+    data["order_ids"].append(extra_id)
+    manifest.write_text(json.dumps(data))
+    destination = tmp_path / "out"
+    with pytest.raises(ValueError, match="order"):
+        render(destination, input_dir)
+    assert not destination.exists()
+
+
+def test_xlsx_never_truncates_an_engineering_exception(input_dir, world, tmp_path):
+    text = "x" * 32767 + " EXCEPT WHILE ASLEEP"
+    world["orders"]["M31-r1"]["rows"]["L31"]["cells"]["B"] = text
+    repin_world(input_dir, world)
+    destination = tmp_path / "out"
+    with pytest.raises(ValueError, match="32767|32,767"):
+        render(destination, input_dir)
+    assert not destination.exists()
+
+
+def test_render_retry_rejects_files_changed_during_comparison(native_bundle, tmp_path, monkeypatch):
+    import builtins
+    import io
+
+    destination = shutil.copytree(native_bundle, tmp_path / "retry")
+    files = [destination / "orders/M33-r1/trim.xlsx", destination / "orders/M38-r1/submission.xlsx"]
+    originals = {file: file.read_bytes() for file in files}
+    edits = {file: b"X" + content[1:] for file, content in originals.items()}
+    for file in files:
+        file.write_bytes(edits[file])
+    seen = []
+
+    # Interleave real writes at the read boundaries, independent of traversal order.
+    # One workbook is always wrong, although both reads receive their original bytes.
+    def interleaved(open_file):
+        def open_with_edits(path, mode="r", *args, **kwargs):
+            if mode == "rb" and not isinstance(path, int):
+                file = Path(path)
+                if file in originals and file not in seen:
+                    if seen:
+                        seen[0].write_bytes(edits[seen[0]])
+                    file.write_bytes(originals[file])
+                    seen.append(file)
+            return open_file(path, mode, *args, **kwargs)
+
+        return open_with_edits
+
+    monkeypatch.setattr(builtins, "open", interleaved(builtins.open))
+    monkeypatch.setattr(io, "open", interleaved(io.open))
+    with pytest.raises(ValueError, match="differs|changed"):
+        render(destination)
+    monkeypatch.undo()
+    assert any(file.read_bytes() != originals[file] for file in files)
+
+
+def test_e08_native_trace_meets_the_press_and_ack_deadlines(native_bundle):
+    sheet = load_workbook(native_bundle / "knowledge/experience.xlsx")["ReviewedTrace"]
+    trace = [row[1:] for row in list(sheet.values)[1:] if row[0] == "RELAY.1"]
+    assert all(tuple(map(type, sample)) == (int, bool, bool, bool, int, bool) for sample in trace)
+    # Hand-checked bench samples: ms, button, ACK, pulse, counted presses, lamp.
+    # A held button counts once. The 20 ms edge lights by 32 ms; ACK at 60 clears by 72.
+    assert trace == [
+        (0, False, False, False, 0, False),
+        (20, True, False, True, 1, False),
+        (28, True, False, False, 1, True),
+        (60, True, True, False, 1, True),
+        (72, True, True, False, 1, False),
+        (100, False, True, False, 1, False),
+    ]
+
+
+def test_native_revision_fields_stay_with_their_owner(native_bundle, world):
+    from docx.table import Table
+
+    doc = Document(native_bundle / "knowledge/function-library.docx")
+    fields = {}
+    owner = revision = None
+    for block in doc.iter_inner_content():
+        if isinstance(block, Table):
+            key = (owner, revision)
+            assert key not in fields
+            pairs = [tuple(cell.text for cell in row.cells) for row in block.rows]
+            fields[key] = distinct_keys(pairs)
+        elif block.style.name == "Heading 1":
+            owner, revision = block.text.split(" — ", 1)[0], None
+        elif block.style.name == "Heading 2":
+            revision = block.text
+    # Independently reviewed native values for the only complete E01 alternative.
+    dial = fields["F-LEVEL", "LEVEL-A.1"]
+    assert (dial["binding"], dial["mechanism"], json.loads(dial["sequence"])) == (
+        "DIAL-A",
+        "momentary",
+        [0, 2, 5, 0],
+    )
+    expected = {
+        (owner, rev): values
+        for owner, function in world["functions"].items()
+        for rev, values in function["revisions"].items()
+    }
+    assert fields.keys() == expected.keys()
+    for key, values in expected.items():
+        assert fields[key].keys() == values.keys()
+        for field, value in values.items():
+            text = fields[key][field]
+            if isinstance(value, (list, dict)):
+                assert json.loads(text) == value
+            else:
+                assert text == str(value)
