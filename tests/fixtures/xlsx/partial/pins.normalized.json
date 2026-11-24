@@ -1,0 +1,248 @@
+{
+  "schema_version": "1.0",
+  "document": {
+    "schema_version": "1.0",
+    "document_id": "DOC-partial-r1-pins",
+    "role": "pins",
+    "business_revision": "partial-r1",
+    "byte_hash": "sha256:47277f65fb0e79523ea5d9d2e37ef78d95ddfd1035e50847bf3b1ef0371827ef",
+    "original_path": "tests/fixtures/xlsx/partial/pins.xlsx",
+    "layout_profile": "mica-pins-v1",
+    "parser_version": "xlsx-structure-v1"
+  },
+  "source_blocks": [
+    {
+      "schema_version": "1.0",
+      "block_id": "SRC-d37ff2590fb0511d5ed5ac6561ab4bab155420c501d6d4f1326f4fe3784ab406",
+      "document_id": "DOC-partial-r1-pins",
+      "document_hash": "sha256:47277f65fb0e79523ea5d9d2e37ef78d95ddfd1035e50847bf3b1ef0371827ef",
+      "locator": {
+        "kind": "xlsx",
+        "sheet": "pins",
+        "cells": [
+          "A6"
+        ],
+        "text_span": {
+          "start": 0,
+          "end": 10
+        }
+      },
+      "raw_text": "Shelf dial",
+      "effective_status": "CURRENT",
+      "formatting": {
+        "header": "Device",
+        "header_cell": "A5",
+        "scope_text": "CURRENT_ORDER",
+        "scope_cell": "A4",
+        "scope_range": null,
+        "statement_scope": "CURRENT_ORDER",
+        "row_hidden": false,
+        "data_type": "s"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "block_id": "SRC-3c0d437dea5898444948e45f461b9878119149e447225c563903f3b9b2a0eede",
+      "document_id": "DOC-partial-r1-pins",
+      "document_hash": "sha256:47277f65fb0e79523ea5d9d2e37ef78d95ddfd1035e50847bf3b1ef0371827ef",
+      "locator": {
+        "kind": "xlsx",
+        "sheet": "pins",
+        "cells": [
+          "B6"
+        ],
+        "text_span": {
+          "start": 0,
+          "end": 6
+        }
+      },
+      "raw_text": "DIAL-A",
+      "effective_status": "UNRESOLVED",
+      "formatting": {
+        "header": "Current connection",
+        "header_cell": "B5",
+        "scope_text": "",
+        "scope_cell": "B4",
+        "scope_range": null,
+        "statement_scope": null,
+        "row_hidden": false,
+        "data_type": "s"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "block_id": "SRC-b304a1021455b2802acd50bdf53a4418912e5b2ad0bf55689b90070a3555d6a2",
+      "document_id": "DOC-partial-r1-pins",
+      "document_hash": "sha256:47277f65fb0e79523ea5d9d2e37ef78d95ddfd1035e50847bf3b1ef0371827ef",
+      "locator": {
+        "kind": "xlsx",
+        "sheet": "pins",
+        "cells": [
+          "C6"
+        ],
+        "text_span": {
+          "start": 0,
+          "end": 11
+        }
+      },
+      "raw_text": "Reed collar",
+      "effective_status": "UNRESOLVED",
+      "formatting": {
+        "header": "Loom note",
+        "header_cell": "C5",
+        "scope_text": "",
+        "scope_cell": "C4",
+        "scope_range": null,
+        "statement_scope": null,
+        "row_hidden": false,
+        "data_type": "s"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "block_id": "SRC-06b4a271fcbef6c9f01013d8c33a18a35f3464f0744cf50406f27fd7b00cad7b",
+      "document_id": "DOC-partial-r1-pins",
+      "document_hash": "sha256:47277f65fb0e79523ea5d9d2e37ef78d95ddfd1035e50847bf3b1ef0371827ef",
+      "locator": {
+        "kind": "xlsx",
+        "sheet": "pins",
+        "cells": [
+          "D6"
+        ],
+        "text_span": {
+          "start": 0,
+          "end": 6
+        }
+      },
+      "raw_text": "DIAL-B",
+      "effective_status": "UNRESOLVED",
+      "formatting": {
+        "header": "Prior order connection",
+        "header_cell": "D5",
+        "scope_text": "CURRENT_ORDER",
+        "scope_cell": "D4",
+        "scope_range": null,
+        "statement_scope": null,
+        "row_hidden": false,
+        "data_type": "s"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "block_id": "SRC-0ffd050ec1bcda6a8c6cf84a8395f141998bf3b555a923f772b883455c4856b9",
+      "document_id": "DOC-partial-r1-pins",
+      "document_hash": "sha256:47277f65fb0e79523ea5d9d2e37ef78d95ddfd1035e50847bf3b1ef0371827ef",
+      "locator": {
+        "kind": "xlsx",
+        "sheet": "pins",
+        "cells": [
+          "E6"
+        ],
+        "text_span": {
+          "start": 0,
+          "end": 11
+        }
+      },
+      "raw_text": "spare input",
+      "effective_status": "CURRENT",
+      "formatting": {
+        "header": "Planned use",
+        "header_cell": "E5",
+        "scope_text": "PLANNED_USE",
+        "scope_cell": "E4",
+        "scope_range": null,
+        "statement_scope": "PLANNED_USE",
+        "row_hidden": false,
+        "data_type": "s"
+      }
+    }
+  ],
+  "assertions": [],
+  "issues": [
+    {
+      "issue_id": "DOC-partial-r1-pins-parse-1",
+      "code": "PARSE_INCOMPLETE",
+      "severity": "BLOCKING",
+      "scope": "DOC-partial-r1-pins",
+      "evidence_ids": [],
+      "resolution_target": "mica-pins-v1",
+      "message": "Unprofiled: no sheet mapping in this layout"
+    },
+    {
+      "issue_id": "DOC-partial-r1-pins-parse-2",
+      "code": "PARSE_INCOMPLETE",
+      "severity": "BLOCKING",
+      "scope": "DOC-partial-r1-pins",
+      "evidence_ids": [],
+      "resolution_target": "mica-pins-v1",
+      "message": "pins!B5: unmapped or ambiguous header 'Current connection' under '' at B4"
+    },
+    {
+      "issue_id": "DOC-partial-r1-pins-parse-3",
+      "code": "PARSE_INCOMPLETE",
+      "severity": "BLOCKING",
+      "scope": "DOC-partial-r1-pins",
+      "evidence_ids": [],
+      "resolution_target": "mica-pins-v1",
+      "message": "pins!C5: unmapped or ambiguous header 'Loom note' under '' at C4"
+    },
+    {
+      "issue_id": "DOC-partial-r1-pins-parse-4",
+      "code": "PARSE_INCOMPLETE",
+      "severity": "BLOCKING",
+      "scope": "DOC-partial-r1-pins",
+      "evidence_ids": [],
+      "resolution_target": "mica-pins-v1",
+      "message": "pins!D5: unmapped or ambiguous header 'Prior order connection' under 'CURRENT_ORDER' at D4"
+    },
+    {
+      "issue_id": "DOC-partial-r1-pins-parse-5",
+      "code": "PARSE_INCOMPLETE",
+      "severity": "BLOCKING",
+      "scope": "DOC-partial-r1-pins",
+      "evidence_ids": [],
+      "resolution_target": "mica-pins-v1",
+      "message": "pins: missing required header 'Current connection' in CURRENT_ORDER"
+    },
+    {
+      "issue_id": "DOC-partial-r1-pins-parse-6",
+      "code": "PARSE_INCOMPLETE",
+      "severity": "BLOCKING",
+      "scope": "DOC-partial-r1-pins",
+      "evidence_ids": [],
+      "resolution_target": "mica-pins-v1",
+      "message": "pins: missing required header 'Loom note' in CURRENT_ORDER"
+    },
+    {
+      "issue_id": "DOC-partial-r1-pins-parse-7",
+      "code": "PARSE_INCOMPLETE",
+      "severity": "BLOCKING",
+      "scope": "DOC-partial-r1-pins",
+      "evidence_ids": [],
+      "resolution_target": "mica-pins-v1",
+      "message": "pins: missing required header 'Prior order connection' in HISTORICAL_REFERENCE"
+    }
+  ],
+  "completeness": {
+    "complete": false,
+    "supported_regions": [
+      "pins!A5",
+      "pins!E5",
+      "pins!A6",
+      "pins!E6"
+    ],
+    "unsupported_regions": [
+      "Unprofiled"
+    ],
+    "mapped_columns": [
+      "pins!A",
+      "pins!E"
+    ],
+    "unmapped_columns": [
+      "pins!B",
+      "pins!C",
+      "pins!D"
+    ],
+    "mandatory_sections_found": false
+  }
+}

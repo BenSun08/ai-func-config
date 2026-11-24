@@ -2,11 +2,63 @@
 
 Design: Bus_Config_AI_Detailed_Design_EN_v3.md
 Plan: Bus_Config_AI_Implementation_Plan_EN_v1.md
-Current milestone: M0 (local repair gate passed)
-Current subtask: T01–T02 milestone review repairs
-Status: all 15 reproduced findings covered on `codex/m0-gate-repairs`
-Verified date: 2026-11-22 (Asia/Shanghai)
-Next subtask: T03.1
+Current milestone: M1 (deterministic baseline)
+Current subtask: T03.1, spreadsheet structure and provenance
+Status: verified locally on `codex/t03-1-xlsx-structure`
+Verified date: 2026-11-24 (Asia/Shanghai)
+Next subtask: T03.2, spreadsheet value and formula rules
+
+## T03.1 — Spreadsheet structure and provenance
+
+The parser mapped 74 source cells across the 18 scope-banded native order
+workbooks. In M32-r1, logic B8 retained its two lines, field heading B7 and
+scope band A6:C6. Pins B6, D6 and E6 retained current DIAL-A, historical
+DIAL-B and planned spare input respectively. The samples below record the
+parser's complete output, including the mapping diagnostics.
+
+| Files changed | Purpose |
+| --- | --- |
+| `src/busconfig/domain/contracts.py` | Add the missing `LayoutProfile` input contract and reuse the existing three statement-scope literals. |
+| `config/layouts/mica-{logic,pins,switches,trim}-v1.yaml` | Declare the role, sheet, preamble and required scoped headers for the banded Mica order sources. |
+| `src/busconfig/ingest/{__init__,xlsx_parser}.py` | Implement `parse_xlsx(source, profile) -> ParseResult` with the schema 1.0 block-ID, locator, issue and completeness contracts. |
+| `tests/integration/test_xlsx_parser.py` | Exercise the public parser against native workbooks, including changes of column order, damaged mappings, blank cells and inert links. |
+| `tests/fixtures/xlsx/{reordered,partial}/pins.xlsx` and adjacent `pins.normalized.json` | Two synthetic derivatives of the M32 pin workbook. Each JSON contains the source hash, native cell evidence, issues and completeness report. |
+| `docs/{decisions,progress}.md` | Record the mapping rules, verification and handoff. |
+
+**Parser issue report.** The [reordered sample](../tests/fixtures/xlsx/reordered/pins.normalized.json)
+has five blocks and zero issues. Its planned and historical columns have exchanged
+positions. The [partial sample](../tests/fixtures/xlsx/partial/pins.normalized.json)
+has five blocks and seven blocking `PARSE_INCOMPLETE` issues. B5 and C5 lost
+their merged scope, D5 sits under an incorrect scope, three required pairs are
+therefore missing, and one worksheet has no mapping. The values in B6:D6 remain
+available at their original addresses with unresolved status.
+
+### Commands and observed results
+
+The uv commands used `UV_CACHE_DIR=/tmp/busconfig-uv-cache`. The local task branch
+starts at `556b6a9`. The pre-existing change to `.DS_Store` was excluded.
+
+| Command or check | Observed result |
+| --- | --- |
+| `git status --short --branch --untracked-files=all`, `git log -5 --oneline --decorate`, `git switch -c codex/t03-1-xlsx-structure` | Inspected main and created the local branch. Baseline `uv run pytest -q` passed all 171 tests. |
+| `.venv/bin/python -` with openpyxl on the original Mica workbooks | Inspected native sheet names, scope merges, headers, cells and multiline text. The same logic profile has field headers on different rows across orders. |
+| `uv run pytest tests/integration/test_xlsx_parser.py -q --tb=short` before parser code | Both named tests collected and failed at the missing `busconfig.ingest` import. With the rest of the initial cases, `-q --tb=line` reported eight failures. The first implementation passed all eight. |
+| `uv run pytest tests/integration/test_xlsx_parser.py -q --tb=short` during review | Three failures exposed missing data-region reporting, a header-only success and a second table inheriting the first table's scopes. Another three exposed coarse region reporting and a field header merged into data that was accepted as mapped. |
+| Same test file with `-k 'scope_word or hidden_rows' -q --tb=short` and later `-k second_table -q --tb=short` | Reproduced a literal scope word truncating valid data, then a separated second band with an unfamiliar field heading being accepted. The final cases preserve the literal and report the second section as unsupported. |
+| Same test file with `-k link_target -q --tb=short` | The first setup omitted the blank link when saved. A native B9:B10 hyperlink range exposed the real failure: openpyxl supplied the external target as B9's cell text. The final parser retains blank B9 and the authored identical target text in B10. |
+| `uv run python -` with the existing synthetic `save_native` renderer, then native reload | Wrote and reopened the two fixture variants. A separate `uv run python -` parsed all 18 banded manifest entries using their pinned revisions and SHA-256 values, checked the cells and scope anchors against the workbooks, and round-tripped the results. |
+| `uv run python -` using `ParseResult.model_validate_json` and `parse_xlsx` | Reloaded both committed-format JSON examples and compared each entire report to a fresh parse of its workbook. Both matched. |
+| `uv run pytest tests/integration/test_xlsx_parser.py -q` | Final named suite passed all 15 cases. |
+| `uv run pytest tests/unit -q`, `uv run pytest tests/integration -q`, `uv run pytest tests/acceptance/test_anchor_integrity.py -q` | 115 unit tests, 15 integration cases and 56 anchor regressions passed. |
+| `uv run pytest -q`, `uv run ruff check .`, `uv run ruff format --check src synthetic evals tests` | Final full suite passed all 186 tests. Lint and formatting passed. |
+| `git diff --cached --stat`, scoped `git diff --cached`, `git diff --cached --check`, `git diff --name-only` | Reviewed the 14 staged files locally. The whitespace check passed. Only `.DS_Store` had an unstaged change. The local commit containing this record is titled `feat: extract T03.1 spreadsheet structure with provenance`. |
+
+**Handoff.** No T03.1 blockers. This parser produces structural blocks for the
+four declared order layouts. Assertions are empty at this stage. Formulas
+retain their expressions and require review. T03.2 owns typed values, blank
+markers and cached formula values. T03.3 owns the shared archive guard, limits
+and cross-import checks. The unbanded knowledge, submission and parent-decision
+tables require their own mappings.
 
 ## M0 review repairs
 

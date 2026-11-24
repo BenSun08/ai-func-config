@@ -1,0 +1,187 @@
+{
+  "schema_version": "1.0",
+  "document": {
+    "schema_version": "1.0",
+    "document_id": "DOC-reordered-r1-pins",
+    "role": "pins",
+    "business_revision": "reordered-r1",
+    "byte_hash": "sha256:892be2908912e8f4aecbe61dfb6ae0045440a28ec54069e8998c396a38965160",
+    "original_path": "tests/fixtures/xlsx/reordered/pins.xlsx",
+    "layout_profile": "mica-pins-v1",
+    "parser_version": "xlsx-structure-v1"
+  },
+  "source_blocks": [
+    {
+      "schema_version": "1.0",
+      "block_id": "SRC-e94da0668ea7873b78fd27547c01b2afa3c345b533199ac47b043ff5fd935fb5",
+      "document_id": "DOC-reordered-r1-pins",
+      "document_hash": "sha256:892be2908912e8f4aecbe61dfb6ae0045440a28ec54069e8998c396a38965160",
+      "locator": {
+        "kind": "xlsx",
+        "sheet": "pins",
+        "cells": [
+          "A6"
+        ],
+        "text_span": {
+          "start": 0,
+          "end": 10
+        }
+      },
+      "raw_text": "Shelf dial",
+      "effective_status": "CURRENT",
+      "formatting": {
+        "header": "Device",
+        "header_cell": "A5",
+        "scope_text": "CURRENT_ORDER",
+        "scope_cell": "A4",
+        "scope_range": "A4:C4",
+        "statement_scope": "CURRENT_ORDER",
+        "row_hidden": false,
+        "data_type": "s"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "block_id": "SRC-316941745e509fe4d888e091cd838bb2b5a851387b60311159cf336a35d4529f",
+      "document_id": "DOC-reordered-r1-pins",
+      "document_hash": "sha256:892be2908912e8f4aecbe61dfb6ae0045440a28ec54069e8998c396a38965160",
+      "locator": {
+        "kind": "xlsx",
+        "sheet": "pins",
+        "cells": [
+          "B6"
+        ],
+        "text_span": {
+          "start": 0,
+          "end": 6
+        }
+      },
+      "raw_text": "DIAL-A",
+      "effective_status": "CURRENT",
+      "formatting": {
+        "header": "Current connection",
+        "header_cell": "B5",
+        "scope_text": "CURRENT_ORDER",
+        "scope_cell": "A4",
+        "scope_range": "A4:C4",
+        "statement_scope": "CURRENT_ORDER",
+        "row_hidden": false,
+        "data_type": "s"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "block_id": "SRC-2297e2f371fab984ee1c08eccd2b6eeea9bdb6bde0e61c1a3e566c001be9295c",
+      "document_id": "DOC-reordered-r1-pins",
+      "document_hash": "sha256:892be2908912e8f4aecbe61dfb6ae0045440a28ec54069e8998c396a38965160",
+      "locator": {
+        "kind": "xlsx",
+        "sheet": "pins",
+        "cells": [
+          "C6"
+        ],
+        "text_span": {
+          "start": 0,
+          "end": 36
+        }
+      },
+      "raw_text": "Reed collar\n  Keep original spacing.",
+      "effective_status": "CURRENT",
+      "formatting": {
+        "header": "Loom note",
+        "header_cell": "C5",
+        "scope_text": "CURRENT_ORDER",
+        "scope_cell": "A4",
+        "scope_range": "A4:C4",
+        "statement_scope": "CURRENT_ORDER",
+        "row_hidden": false,
+        "data_type": "s"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "block_id": "SRC-c7b4a3c9744a01148af476af657f59fc6e7900372683c09d995e255f6ac07722",
+      "document_id": "DOC-reordered-r1-pins",
+      "document_hash": "sha256:892be2908912e8f4aecbe61dfb6ae0045440a28ec54069e8998c396a38965160",
+      "locator": {
+        "kind": "xlsx",
+        "sheet": "pins",
+        "cells": [
+          "D6"
+        ],
+        "text_span": {
+          "start": 0,
+          "end": 11
+        }
+      },
+      "raw_text": "spare input",
+      "effective_status": "CURRENT",
+      "formatting": {
+        "header": "Planned use",
+        "header_cell": "D5",
+        "scope_text": "PLANNED_USE",
+        "scope_cell": "D4",
+        "scope_range": null,
+        "statement_scope": "PLANNED_USE",
+        "row_hidden": false,
+        "data_type": "s"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "block_id": "SRC-bcae83735487fa4a2fd1f37b8e8f0dcbc48df7c662b0d2ed501808fac25e75d5",
+      "document_id": "DOC-reordered-r1-pins",
+      "document_hash": "sha256:892be2908912e8f4aecbe61dfb6ae0045440a28ec54069e8998c396a38965160",
+      "locator": {
+        "kind": "xlsx",
+        "sheet": "pins",
+        "cells": [
+          "E6"
+        ],
+        "text_span": {
+          "start": 0,
+          "end": 6
+        }
+      },
+      "raw_text": "DIAL-B",
+      "effective_status": "CURRENT",
+      "formatting": {
+        "header": "Prior order connection",
+        "header_cell": "E5",
+        "scope_text": "HISTORICAL_REFERENCE",
+        "scope_cell": "E4",
+        "scope_range": null,
+        "statement_scope": "HISTORICAL_REFERENCE",
+        "row_hidden": false,
+        "data_type": "s"
+      }
+    }
+  ],
+  "assertions": [],
+  "issues": [],
+  "completeness": {
+    "complete": true,
+    "supported_regions": [
+      "pins!A5",
+      "pins!B5",
+      "pins!C5",
+      "pins!D5",
+      "pins!E5",
+      "pins!A6",
+      "pins!B6",
+      "pins!C6",
+      "pins!D6",
+      "pins!E6"
+    ],
+    "unsupported_regions": [],
+    "mapped_columns": [
+      "pins!A",
+      "pins!B",
+      "pins!C",
+      "pins!D",
+      "pins!E"
+    ],
+    "unmapped_columns": [],
+    "mandatory_sections_found": true
+  }
+}
