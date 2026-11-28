@@ -1,5 +1,23 @@
 # Implementation decisions
 
+## T03.1 — 2026-11-24
+
+- Each Mica order profile names one sheet and the required pairs of scope and
+  field headings. After the declared preamble and any blank spacer rows, the
+  scope band sits immediately above the field names. Physical column order can
+  vary. Only a native horizontal merge in that band extends a scope label.
+- Emit one structural block per table cell in each populated data row. The
+  document, sheet and native row identify the enclosing row. The block's
+  locator covers its own cell and Unicode text span. Its formatting metadata
+  identifies the field heading, the observed scope heading, their source cells,
+  and the merged range. A validated pair supplies `statement_scope`.
+  `effective_status` describes whether the text is effective in this workbook.
+  A current workbook can contain an effective historical reference.
+- Read the bytes identified by the document hash. Use the local formula view
+  and record link targets as metadata. Where openpyxl can substitute a link
+  target for an empty cell, consult the streaming view of those same bytes.
+  Parsed values and formula-cache policy belong to T03.2.
+
 ## T02.2 — 2026-11-19
 
 - Store an input manifest alongside the authored world. Its digest pins the

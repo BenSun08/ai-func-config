@@ -1,0 +1,6 @@
+profile_id: mica-switches-v1
+role: switches
+sheet: switches
+preamble_rows: 1
+required_headers:
+  CURRENT_ORDER: [Component, Mechanism, Preferred lens, Switch model]

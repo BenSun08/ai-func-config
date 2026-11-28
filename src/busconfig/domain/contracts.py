@@ -28,6 +28,7 @@ DecisionRevisionId = Identifier
 SelectionMap = dict[FunctionId, ConfigRevisionId]
 SourceDocumentId = Identifier
 SourceBlockId = Identifier
+StatementScope = Literal["CURRENT_ORDER", "HISTORICAL_REFERENCE", "PLANNED_USE"]
 OrderSnapshotId = Identifier
 KnowledgeSnapshotId = Identifier
 Digest = Annotated[str, StringConstraints(pattern=r"^sha256:[0-9a-f]{64}$")]
@@ -129,7 +130,7 @@ class SourceAssertion(_TypedValueRecord):
     subject_id: Identifier
     property: Annotated[str, StringConstraints(pattern=r"\S")]
     source_block_ids: Annotated[tuple[Identifier, ...], Field(min_length=1)]
-    statement_scope: Literal["CURRENT_ORDER", "HISTORICAL_REFERENCE", "PLANNED_USE"]
+    statement_scope: StatementScope
     value_state: ValueState
     value: FactValue = None
     raw_text: str | None = None
@@ -199,6 +200,28 @@ class SourceDocument(VersionedModel):
     original_path: Nonblank
     layout_profile: Identifier
     parser_version: Nonblank
+
+
+class LayoutProfile(VersionedModel):
+    """One worksheet with a scope band immediately above its field headers."""
+
+    profile_id: Identifier
+    role: Nonblank
+    sheet: Nonblank
+    preamble_rows: Annotated[int, Field(ge=0)]
+    required_headers: FrozenMap[
+        StatementScope,
+        Annotated[tuple[Nonblank, ...], BeforeValidator(immutable_sequences), Field(min_length=1)],
+    ]
+
+    @model_validator(mode="after")
+    def check_required_headers(self) -> Self:
+        if not self.required_headers:
+            raise ValueError("Layout requires at least one scoped header")
+        for headers in self.required_headers.values():
+            if len(set(headers)) != len(headers):
+                raise ValueError("Duplicate header in the same layout scope")
+        return self
 
 
 class SourceBlock(VersionedModel):
